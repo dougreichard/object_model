@@ -31,11 +31,17 @@ set class Value member: 15us
 
 # Main Classes
 
-Symbol - Symbols are the key for key value pairs. Internally uint16 but can be user facing as a string
-Value - abstract base for Values
-TValue - Template for Wrapping atomic types: Int, Float, String, Array, Object
-Object - A key value Object
-Array - An array of Values
+- Symbol - Symbols are the key for key value pairs. Internally uint16 but can be user facing as a string
+- Value - abstract base for Values
+- TValue - Template for Wrapping atomic types: Int, Float, String, Array, Object
+- Object - A key value Object
+- Array - An array of Values
 
 # Visitor
 Also provide extension of the model via a Visit pattern follow in Open-Closed Principle.
+
+- IVisitor - base for visitor
+- IVisit - Base for Visitation
+- IVisitable - Base for acceptance 
+- BVisitable - Shim class for implementation of acceptance
+- MAKE_VISITABLE - Macro alternative for implementation of acceptance
