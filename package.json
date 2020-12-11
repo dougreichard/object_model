@@ -1,0 +1,16 @@
+{
+  "name": "visitor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "main": "build\\main.exe",
+    "bench": "build\\bench.exe",
+    "build:bench": "cl -nologo -EHsc /GS /GL /W3 /WX- /Gy /Zi /Gm- /O2  /GR  /Gd /Oi /MD /FC /Zc:inline /fp:precise -Zc:forScope -Zc:wchar_t /Fobuild\\ /Fdbuild\\vc140.pdb -Febuild\\bench bench.cpp",
+    "build:main": "cl -nologo -EHsc /GS /GL /W3 /WX- /Gy /Zi /Gm- /O2  /GR  /Gd /Oi /MD /FC /Zc:inline /fp:precise -Zc:forScope -Zc:wchar_t  /Fobuild\\ /Fdbuild\\vc140.pdb -Febuild\\main main.cpp"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
