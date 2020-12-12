@@ -29,7 +29,7 @@ struct Circle : Object
         _y = rhs._y;
         _r = rhs._r;
     }
-    Circle(int x, int y, int r)
+    Circle(int x, int y, int r) : Object(circle_type)
     {
         _x = x;
         _y = y;
@@ -67,7 +67,7 @@ SystemSymbol dyn_circle_type("DynCircle");
 struct DynCircle : Object
 {
     MAKE_VISITABLE(DynCircle)
-    DynCircle(int x, int y, int r)
+    DynCircle(int x, int y, int r) : Object(dyn_circle_type)
     {
         set(Prop::X, Int(x));
         set(Prop::Y, Int(y));
@@ -86,7 +86,7 @@ SystemSymbol rect_type("Rect");
 struct Rect : Object
 {
     MAKE_VISITABLE(Rect)
-    Rect(int x, int y, int w, int h)
+    Rect(int x, int y, int w, int h) : Object(rect_type)
     {
         set(Prop::X, Int(x));
         set(Prop::Y, Int(y));

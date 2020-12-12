@@ -60,14 +60,15 @@ namespace obj
     uint16_t INT_SYMBOL = 2;
     uint16_t FLOAT_SYMBOL = 3;
     uint16_t STRING_SYMBOL = 4;
-    uint16_t LAST_BASE_SYMBOL = 4;
+    uint16_t ARRAY_SYMBOL = 5;
+    uint16_t LAST_BASE_SYMBOL = 5;
 
     uint16_t SYSTEM_SYMBOLS = LAST_BASE_SYMBOL;
     uint16_t MAX_SYMBOLS = 0x7FFF; // MAX SYSTEM and USER SYMBOL
     uint16_t USER_SYMBOLS = 0xFFFF;
 
     Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
-    Symbol object_type("object", OBJECT_SYMBOL);
+    Symbol object_type("Object", OBJECT_SYMBOL);
     struct Value : IVisitable
     {
         MAKE_VISITABLE(Value)
@@ -113,26 +114,52 @@ namespace obj
         virtual std::unique_ptr<Value> clone(){
             return std::unique_ptr<Value>(new TValue(*this));
         }
+        void accept(IVisitor *v)
+        {
+            IVisit<TValue> *visit_me = dynamic_cast<IVisit<TValue> *>(v);
+            if (visit_me)
+                visit_me->visit((TValue &)*this);
+        }
     };
 
-    const Symbol int_type("int", INT_SYMBOL);
-    Symbol int16_type("int16", INT_SYMBOL); // Types can have multiple names? Maybe useful for python
-    Symbol float_type("float", FLOAT_SYMBOL);
-    Symbol string_type("string", STRING_SYMBOL);
+    const Symbol int_type("Int", INT_SYMBOL);
+    Symbol int16_type("Int16", INT_SYMBOL); // Types can have multiple names? Maybe useful for python
+    Symbol float_type("Float", FLOAT_SYMBOL);
+    Symbol string_type("String", STRING_SYMBOL);
 
     typedef TValue<int, int_type> Int;
     typedef TValue<float, float_type> Float;
     typedef TValue<std::string, string_type> String;
+}
 
+namespace std
+{
+    template<> struct hash<obj::Symbol>
+    {
+        std::size_t operator()(obj::Symbol const& s) const noexcept
+        {
+            return std::hash<std::uint16_t>{}(s._key);
+        }
+    };
+}
 
-    typedef std::unordered_set<uint16_t> Keywords;
-    typedef std::unordered_map<uint16_t, std::unique_ptr<Value>> KeyValues;
+namespace obj {
+    typedef std::unordered_set<Symbol> Keywords;
+    typedef std::unordered_map<Symbol, std::unique_ptr<Value>> KeyValues;
     struct Object : Value
     {
         MAKE_VISITABLE(Object)
         std::shared_ptr<KeyValues> _kv;
         std::shared_ptr<Keywords> _kw;
-        Object()
+        Object() : Value(object_type)
+        {
+            init();
+        }
+        Object(const Symbol& type) : Value(type)
+        {
+            init();
+        }
+        void init()
         {
             _kv = std::make_shared<KeyValues>();
             _kw = std::make_shared<Keywords>();
@@ -141,6 +168,7 @@ namespace obj
         Object(const Object &rhs) : Value(rhs._type)
         {
             _kv = rhs._kv;
+            _kw = rhs._kw;
         }
         inline Object &set(const Symbol &key, Value &value)
         {
@@ -184,11 +212,12 @@ namespace obj
         }
     };
 
+    Symbol array_type("Array", OBJECT_SYMBOL);
     typedef std::vector<std::unique_ptr<Value>> ValueArray;
     struct Array : Value {
         MAKE_VISITABLE(Array)
         std::shared_ptr<ValueArray> _vec;
-        Array()
+        Array() : Value(array_type)
         {
             _vec = std::make_shared<ValueArray>();
         }
