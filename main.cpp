@@ -41,9 +41,8 @@ struct Print_Trait_2D : IVisitor, IVisit<Circle>, IVisit<Rect>, IVisit<DynCircle
 // This is just a start, a more genric version is possible
 struct XML_Export :  
 IVisitor, 
-IVisit<Object>, 
-IVisit<Rect>, 
-IVisit<DynCircle>, 
+IVisit<Object>,
+IVisit<Array>,
 IVisit<Int>
 {
     std::stringstream  xml;
@@ -56,6 +55,12 @@ IVisit<Int>
         xml << "</mission_data>" << std::endl;
         std::cout << xml.str() << std::endl;
     }
+     void visit(Array &a)
+    {
+       for(auto i=a._vec->begin();i!=a._vec->end();i++) {
+          (*i)->accept(this);
+       }
+    }
     void visit(Object &o)
     {
        xml << "\t<" << o._type._name << " ";
@@ -66,14 +71,6 @@ IVisit<Int>
             xml << "\" ";
        }
         xml << "/>"  << std::endl;
-    }
-    void visit(Rect &c)
-    {
-        visit((Object&)c);
-    }
-    void visit(DynCircle &c)
-    {
-      visit((Object&)c);
     }
     void visit(Int &i) {
         xml <<   i;
@@ -171,13 +168,12 @@ void main()
         arr[i].accept(&v);
     }
     {
-          Array arr;
+        Array arr;
         arr.push(dc);
         arr.push(r);
 
         XML_Export xml;
-        for(size_t i=0, l=arr.size();i<l;i++) {
-        arr[i].accept(&xml);
+        arr.accept(&xml);
     }
     {
         Array arr;
@@ -187,11 +183,5 @@ void main()
         JSON_Export json;
         arr.accept(&json);
     }
-        
-    }
-    
-    // c.accept(&v);
-    // dc2.accept(&v);
-    // dc.accept(&v);
-    // r.accept(&v);
+
 }

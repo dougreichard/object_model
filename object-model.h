@@ -216,7 +216,7 @@ namespace obj {
         }
     };
 
-    Symbol array_type("Array", OBJECT_SYMBOL);
+    Symbol array_type("Array", ARRAY_SYMBOL);
     typedef std::vector<std::unique_ptr<Value>> ValueArray;
     struct Array : Value {
         MAKE_VISITABLE(Array)
