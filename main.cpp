@@ -169,6 +169,7 @@ void main()
     }
     {
         Array arr;
+        arr.push(c);
         arr.push(dc);
         arr.push(r);
 
@@ -177,6 +178,7 @@ void main()
     }
     {
         Array arr;
+        arr.push(c);
         arr.push(dc);
         arr.push(r);
 

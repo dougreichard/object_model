@@ -1,1 +1,4 @@
 /build/
+*.pdb
+*.obj
+*.exe

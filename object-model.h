@@ -57,7 +57,6 @@ namespace obj
         operator const uint16_t&() const { return _key; }
         operator const std::string &() const { return _name; }
     };
-    struct Value;
 
     uint16_t UNDEFINED_SYMBOL = 0;
     uint16_t OBJECT_SYMBOL = 1;
@@ -71,6 +70,21 @@ namespace obj
     uint16_t MAX_SYMBOLS = 0x7FFF; // MAX SYSTEM and USER SYMBOL
     uint16_t USER_SYMBOLS = 0xFFFF;
 
+    struct Value;
+    struct ValuePtr {
+        Value* _ptr;
+        bool _owned;
+        ValuePtr(Value* ptr, bool owned) : _ptr(ptr), _owned(owned) {
+
+        }
+        ValuePtr(const ValuePtr& rhs) : _ptr(rhs._ptr), _owned(rhs._owned) {
+        }
+          inline Value* operator* () {return get();}
+        inline Value* operator-> () {return get();}
+        inline Value* get(){return _ptr;};
+        inline Value& ref() {return *get();}
+    };
+
     Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
     Symbol object_type("Object", OBJECT_SYMBOL);
     struct Value : IVisitable
@@ -78,10 +92,12 @@ namespace obj
         MAKE_VISITABLE(Value)
         Value() : _type(object_type) {}
         Value(const Symbol &type) : _type(type) {}
+        virtual ~Value(){}
         const Symbol &_type;
         virtual std::shared_ptr<Value> make_shared() = 0;
-        virtual std::unique_ptr<Value> clone()=0;
+        virtual ValuePtr clone()=0;
     };
+  
 
     // struct UndefinedValue : Value
     // {
@@ -115,8 +131,8 @@ namespace obj
         {
             return std::shared_ptr<Value>(new TValue(*this));
         }
-        virtual std::unique_ptr<Value> clone(){
-            return std::unique_ptr<Value>(new TValue(*this));
+        virtual ValuePtr clone(){
+            return ValuePtr(new TValue(*this), false);
         }
         void accept(IVisitor *v)
         {
@@ -145,11 +161,18 @@ namespace std
             return std::hash<std::uint16_t>{}(s._key);
         }
     };
+    template<> struct hash<obj::ValuePtr>
+    {
+        std::size_t operator()(obj::ValuePtr const& s) const noexcept
+        {
+            return std::hash<size_t>{}((size_t)s._ptr);
+        }
+    };
 }
 
 namespace obj {
     typedef std::unordered_set<Symbol> Keywords;
-    typedef std::unordered_map<Symbol, std::unique_ptr<Value>> KeyValues;
+    typedef std::unordered_map<Symbol, ValuePtr> KeyValues;
     struct Object : Value
     {
         MAKE_VISITABLE_POLY(Object, Value)
@@ -174,6 +197,23 @@ namespace obj {
             _kv = rhs._kv;
             _kw = rhs._kw;
         }
+
+        virtual ~Object() {
+            if (_kv.use_count()<2) {
+            for(auto i=_kv->begin();i!=_kv->end();i++) {
+                if (!i->second._owned) {
+                    delete i->second._ptr;
+                }
+            }
+            }
+        }
+
+        inline Object &set_owned(const Symbol &key, Value &value)
+        {
+            _kv->emplace(key, ValuePtr(&value, true));
+            return *this;
+        }
+
         inline Object &set(const Symbol &key, Value &value)
         {
             _kv->emplace(key, value.clone());
@@ -184,13 +224,17 @@ namespace obj {
         {
             KeyValues::iterator v = _kv->find(key);
             if (v == _kv->end())
-                return *v->second;
+                return v->second.ref();
             ; //UndefinedValue::UNDEFINED;
-            return *v->second;
+            return v->second.ref();
         }
         inline Object &remove(const Symbol &key)
         {
+            auto i =_kv->find(key);
+            ValuePtr v = i->second;
+            if (!v._owned) delete v._ptr;
             _kv->erase(key);
+
             return *this;
         }
         inline bool has_value(const Symbol &key)
@@ -211,13 +255,13 @@ namespace obj {
         {
             return std::shared_ptr<Value>(new Object(*this));
         }
-        virtual std::unique_ptr<Value> clone(){
-            return std::unique_ptr<Value>(new Object(*this));
+        virtual ValuePtr clone(){
+            return ValuePtr(new Object(*this), false);
         }
     };
 
     Symbol array_type("Array", ARRAY_SYMBOL);
-    typedef std::vector<std::unique_ptr<Value>> ValueArray;
+    typedef std::vector<ValuePtr> ValueArray;
     struct Array : Value {
         MAKE_VISITABLE(Array)
         std::shared_ptr<ValueArray> _vec;
@@ -230,19 +274,28 @@ namespace obj {
         {
             _vec = rhs._vec;
         }
+        ~Array() {
+            if (_vec.use_count()<2) {
+            for(auto i=_vec->begin();i!=_vec->end();i++) {
+                if (!i->_owned) {
+                    delete i->_ptr;
+                }
+            }
+            }
+        }
         virtual std::shared_ptr<Value> make_shared()
         {
             return std::shared_ptr<Value>(new Array(*this));
         }
-        virtual std::unique_ptr<Value> clone(){
-            return std::unique_ptr<Value>(new Array(*this));
+        virtual ValuePtr clone(){
+            return ValuePtr(new Array(*this), false);
         }
         Array& push(Value& v) {
             _vec->push_back(v.clone());
             return *this;
         }
         inline Value & operator[](size_t idx) {
-            return *_vec->at(idx);
+            return _vec->at(idx).ref();
         }
         inline const size_t size() const {
             return _vec->size();
