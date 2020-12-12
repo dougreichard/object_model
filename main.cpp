@@ -83,8 +83,6 @@ IVisit<Int>
 struct JSON_Export :  
 IVisitor, 
 IVisit<Object>, 
-IVisit<Rect>, 
-IVisit<DynCircle>, 
 IVisit<Array>, 
 IVisit<Int>
 {
@@ -119,14 +117,6 @@ IVisit<Int>
           (*i)->accept(this);
        }
         xml << std::endl << "]" ;
-    }
-    void visit(Rect &c)
-    {
-        visit((Object&)c);
-    }
-    void visit(DynCircle &c)
-    {
-      visit((Object&)c);
     }
     void visit(Int &i) {
         xml <<   i;

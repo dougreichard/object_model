@@ -35,6 +35,10 @@ namespace obj
         void accept(IVisitor *v) { \
             IVisit<T> *visit_me = dynamic_cast<IVisit<T> *>(v); \
             if (visit_me) visit_me->visit((T&)*this); }
+    #define MAKE_VISITABLE_POLY(T, B) \
+        void accept(IVisitor *v) { \
+            IVisit<T> *visit_me = dynamic_cast<IVisit<T> *>(v); \
+            if (visit_me) visit_me->visit((T&)*this); else B::accept(v);}
 
     // Used to build visitors
     template <typename T>
@@ -148,7 +152,7 @@ namespace obj {
     typedef std::unordered_map<Symbol, std::unique_ptr<Value>> KeyValues;
     struct Object : Value
     {
-        MAKE_VISITABLE(Object)
+        MAKE_VISITABLE_POLY(Object, Value)
         std::shared_ptr<KeyValues> _kv;
         std::shared_ptr<Keywords> _kw;
         Object() : Value(object_type)
@@ -233,12 +237,10 @@ namespace obj {
         virtual std::unique_ptr<Value> clone(){
             return std::unique_ptr<Value>(new Array(*this));
         }
-
         Array& push(Value& v) {
             _vec->push_back(v.clone());
             return *this;
         }
-
         inline Value & operator[](size_t idx) {
             return *_vec->at(idx);
         }

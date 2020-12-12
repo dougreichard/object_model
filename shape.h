@@ -23,7 +23,7 @@ namespace Prop
 SystemSymbol circle_type("Circle");
 struct Circle : Object
 {
-    MAKE_VISITABLE(Circle)
+    MAKE_VISITABLE_POLY(Circle, Object)
     Circle(const Circle& rhs) : Object(rhs) {
         _x = rhs._x;
         _y = rhs._y;
@@ -66,7 +66,7 @@ struct Circle : Object
 SystemSymbol dyn_circle_type("DynCircle");
 struct DynCircle : Object
 {
-    MAKE_VISITABLE(DynCircle)
+    MAKE_VISITABLE_POLY(DynCircle, Object)
     DynCircle(int x, int y, int r) : Object(dyn_circle_type)
     {
         set(Prop::X, Int(x));
@@ -85,7 +85,7 @@ struct DynCircle : Object
 SystemSymbol rect_type("Rect");
 struct Rect : Object
 {
-    MAKE_VISITABLE(Rect)
+    MAKE_VISITABLE_POLY(Rect, Object)
     Rect(int x, int y, int w, int h) : Object(rect_type)
     {
         set(Prop::X, Int(x));
