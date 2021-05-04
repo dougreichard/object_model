@@ -2,6 +2,7 @@
 #include <Python.h>
 #include "shape.h"
 
+
 // 
 typedef struct {
     PyObject_HEAD
@@ -42,7 +43,7 @@ PyObject *py_circle_get_attro(PyObject *self, PyObject *attrName) {
         PyCircle* c = (PyCircle*)self;
         Value& v = c->circle->get(*s);
         if (v._type._key == obj::INT_SYMBOL) {
-            return PyLong_FromLong((Int&)v);
+            return PyLong_FromLong(123);//(Int)v);
         }
     }
     Py_RETURN_NONE;

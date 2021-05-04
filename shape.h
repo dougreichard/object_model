@@ -21,9 +21,9 @@ namespace Prop
 }; // namespace ES
 
 #ifdef __DEFINE_STATIC__
-    SystemSymbol circle_type("DynCircle");
+    extern SystemSymbol circle_type("Circle");
 #else 
-extern SystemSymbol circle_type;
+    extern SystemSymbol circle_type;
 #endif
 
 struct Circle : Object
@@ -79,9 +79,9 @@ struct Circle : Object
 };
 
 #ifdef __DEFINE_STATIC__
-    SystemSymbol dyn_circle_type("DynCircle");
+    extern SystemSymbol dyn_circle_type("DynCircle");
 #else 
-extern SystemSymbol dyn_circle_type;
+    extern SystemSymbol dyn_circle_type;
 #endif
 struct DynCircle : Object
 {

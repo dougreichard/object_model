@@ -63,8 +63,7 @@ namespace obj
     };
 
 
-#ifdef __DEFINE_STATIC__
-    std::unordered_map<std::string, obj::Symbol*> obj::Symbol::symbols;
+#ifndef __DEFINE_STATIC__
     extern const uint16_t UNDEFINED_SYMBOL;
     extern const  uint16_t OBJECT_SYMBOL;
     extern const uint16_t INT_SYMBOL;
@@ -79,6 +78,7 @@ namespace obj
     extern const Symbol object_type;
     extern const Symbol array_type;
 #else 
+    std::unordered_map<std::string, obj::Symbol*> obj::Symbol::symbols;
     extern const uint16_t UNDEFINED_SYMBOL = 0;
     extern const uint16_t OBJECT_SYMBOL = 1;
     extern const uint16_t INT_SYMBOL = 2;
