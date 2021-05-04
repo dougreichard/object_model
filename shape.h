@@ -28,17 +28,27 @@ extern SystemSymbol circle_type;
 
 struct Circle : Object
 {
-    MAKE_VISITABLE(Circle)
+    MAKE_VISITABLE_POLY(Circle, Object)
     Circle(const Circle& rhs) : Object(rhs) {
         _x = rhs._x;
         _y = rhs._y;
         _r = rhs._r;
+        add_owned_props();
     }
-    Circle(int x, int y, int r)
+    Circle(int x, int y, int r) : Object(circle_type)
     {
         _x = x;
         _y = y;
         _r = r;
+        add_owned_props();
+    }
+    // This adds the class members to the 
+    // key/value map
+    // This way they are avaible when enumerating key/values
+    void add_owned_props() {
+        set_owned(Prop::X, _x);
+        set_owned(Prop::Y, _y);
+        set_owned(Prop::R, _r);
     }
     Int _x;
     Int _y;
@@ -58,8 +68,8 @@ struct Circle : Object
     {
         return std::shared_ptr<Value>(new Circle(_x,_y,_r));
     }
-    virtual std::unique_ptr<Value> clone(){
-        return std::unique_ptr<Value>(new Circle(_x,_y,_r));
+    virtual ValuePtr clone(){
+        return ValuePtr(new Circle(_x,_y,_r), false);
     }
 
     inline Int& px() {return (Int&)get(Prop::X);}
@@ -75,8 +85,8 @@ extern SystemSymbol dyn_circle_type;
 #endif
 struct DynCircle : Object
 {
-    MAKE_VISITABLE(DynCircle)
-    DynCircle(int x, int y, int r)
+    MAKE_VISITABLE_POLY(DynCircle, Object)
+    DynCircle(int x, int y, int r) : Object(dyn_circle_type)
     {
         set(Prop::X, Int(x));
         set(Prop::Y, Int(y));
@@ -85,8 +95,8 @@ struct DynCircle : Object
     int &x() { return (Int &)get(Prop::X); }
     int &y() { return (Int &)get(Prop::Y); }
     int &r() { return (Int &)get(Prop::R); }
-    virtual std::unique_ptr<Value> clone(){
-        return std::unique_ptr<Value>(new DynCircle(*this));
+    virtual ValuePtr clone(){
+        return ValuePtr(new DynCircle(*this), false);
     }
 };
 
@@ -100,8 +110,8 @@ struct DynCircle : Object
 
 struct Rect : Object
 {
-    MAKE_VISITABLE(Rect)
-    Rect(int x, int y, int w, int h)
+    MAKE_VISITABLE_POLY(Rect, Object)
+    Rect(int x, int y, int w, int h) : Object(rect_type)
     {
         set(Prop::X, Int(x));
         set(Prop::Y, Int(y));
@@ -112,8 +122,8 @@ struct Rect : Object
     int &y() { return (Int &)get(Prop::Y); }
     int &w() { return (Int &)get(Prop::W); }
     int &h() { return (Int &)get(Prop::H); }
-    virtual std::unique_ptr<Value> clone(){
-        return std::unique_ptr<Value>(new Rect(*this));
+    virtual ValuePtr clone(){
+        return ValuePtr(new Rect(*this), false);
     }
 };
 

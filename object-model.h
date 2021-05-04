@@ -36,6 +36,10 @@ namespace obj
         void accept(IVisitor *v) { \
             IVisit<T> *visit_me = dynamic_cast<IVisit<T> *>(v); \
             if (visit_me) visit_me->visit((T&)*this); }
+    #define MAKE_VISITABLE_POLY(T, B) \
+        void accept(IVisitor *v) { \
+            IVisit<T> *visit_me = dynamic_cast<IVisit<T> *>(v); \
+            if (visit_me) visit_me->visit((T&)*this); else B::accept(v);}
 
     // Used to build visitors
     template <typename T>
@@ -57,7 +61,7 @@ namespace obj
         operator const uint16_t&() const { return _key; }
         operator const std::string &() const { return _name; }
     };
-    struct Value;
+
 
 #ifdef __DEFINE_STATIC__
     std::unordered_map<std::string, obj::Symbol*> obj::Symbol::symbols;
@@ -66,37 +70,58 @@ namespace obj
     extern const uint16_t INT_SYMBOL;
     extern const uint16_t FLOAT_SYMBOL;
     extern const uint16_t STRING_SYMBOL;
+    extern const uint16_t ARRAY_SYMBOL;
     extern const uint16_t LAST_BASE_SYMBOL;
     extern uint16_t SYSTEM_SYMBOLS;
     extern uint16_t MAX_SYMBOLS; // MAX SYSTEM and USER SYMBOL
     extern uint16_t USER_SYMBOLS;
     extern const Symbol undefined_type; 
     extern const Symbol object_type;
+    extern const Symbol array_type;
 #else 
     extern const uint16_t UNDEFINED_SYMBOL = 0;
     extern const uint16_t OBJECT_SYMBOL = 1;
     extern const uint16_t INT_SYMBOL = 2;
     extern const uint16_t FLOAT_SYMBOL = 3;
     extern const uint16_t STRING_SYMBOL = 4;
-    extern const uint16_t LAST_BASE_SYMBOL = 4;
+    extern const uint16_t ARRAY_SYMBOL = 5;
+    extern const uint16_t LAST_BASE_SYMBOL = 5;
 
     extern uint16_t SYSTEM_SYMBOLS = LAST_BASE_SYMBOL;
     extern uint16_t MAX_SYMBOLS = 0x7FFF; // MAX SYSTEM and USER SYMBOL
     extern uint16_t USER_SYMBOLS = 0xFFFF;
     extern const Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
     extern const Symbol object_type("object", OBJECT_SYMBOL);
+    extern const Symbol array_type("Array", ARRAY_SYMBOL);
 #endif
 
+
+    struct Value;
+    struct ValuePtr {
+        Value* _ptr;
+        bool _owned;
+        ValuePtr(Value* ptr, bool owned) : _ptr(ptr), _owned(owned) {
+
+        }
+        ValuePtr(const ValuePtr& rhs) : _ptr(rhs._ptr), _owned(rhs._owned) {
+        }
+          inline Value* operator* () {return get();}
+        inline Value* operator-> () {return get();}
+        inline Value* get(){return _ptr;};
+        inline Value& ref() {return *get();}
+    };
 
     struct Value : IVisitable
     {
         MAKE_VISITABLE(Value)
         Value() : _type(object_type) {}
         Value(const Symbol &type) : _type(type) {}
+        virtual ~Value(){}
         const Symbol &_type;
         virtual std::shared_ptr<Value> make_shared() = 0;
-        virtual std::unique_ptr<Value> clone()=0;
+        virtual ValuePtr clone()=0;
     };
+  
 
     // struct UndefinedValue : Value
     // {
@@ -130,37 +155,70 @@ namespace obj
         {
             return std::shared_ptr<Value>(new TValue(*this));
         }
-        virtual std::unique_ptr<Value> clone(){
-            return std::unique_ptr<Value>(new TValue(*this));
+        virtual ValuePtr clone(){
+            return ValuePtr(new TValue(*this), false);
+        }
+        void accept(IVisitor *v)
+        {
+            IVisit<TValue> *visit_me = dynamic_cast<IVisit<TValue> *>(v);
+            if (visit_me)
+                visit_me->visit((TValue &)*this);
         }
     };
 
-    
+   
 #ifndef __DEFINE_STATIC__
     extern const Symbol int_type;
     extern const Symbol int16_type;
     extern const Symbol float_type;
     extern const Symbol string_type;
 #else
-    extern const Symbol int_type("int", INT_SYMBOL);
-    extern const Symbol int16_type("int16", INT_SYMBOL); // Types can have multiple names? Maybe useful for python
-    extern const Symbol float_type("float", FLOAT_SYMBOL);
-    extern const Symbol string_type("string", STRING_SYMBOL);
+    extern const Symbol int_type("Int", INT_SYMBOL);
+    extern const Symbol int16_type("Int16", INT_SYMBOL); // Types can have multiple names? Maybe useful for python
+    extern const Symbol float_type("Float", FLOAT_SYMBOL);
+    extern const Symbol string_type("String", STRING_SYMBOL);
 #endif
 
     typedef TValue<int, int_type> Int;
     typedef TValue<float, float_type> Float;
     typedef TValue<std::string, string_type> String;
+}
 
+namespace std
+{
+    template<> struct hash<obj::Symbol>
+    {
+        std::size_t operator()(obj::Symbol const& s) const noexcept
+        {
+            return std::hash<std::uint16_t>{}(s._key);
+        }
+    };
+    template<> struct hash<obj::ValuePtr>
+    {
+        std::size_t operator()(obj::ValuePtr const& s) const noexcept
+        {
+            return std::hash<size_t>{}((size_t)s._ptr);
+        }
+    };
+}
 
-    typedef std::unordered_set<uint16_t> Keywords;
-    typedef std::unordered_map<uint16_t, std::unique_ptr<Value>> KeyValues;
+namespace obj {
+    typedef std::unordered_set<Symbol> Keywords;
+    typedef std::unordered_map<Symbol, ValuePtr> KeyValues;
     struct Object : Value
     {
-        MAKE_VISITABLE(Object)
+        MAKE_VISITABLE_POLY(Object, Value)
         std::shared_ptr<KeyValues> _kv;
         std::shared_ptr<Keywords> _kw;
-        Object()
+        Object() : Value(object_type)
+        {
+            init();
+        }
+        Object(const Symbol& type) : Value(type)
+        {
+            init();
+        }
+        void init()
         {
             _kv = std::make_shared<KeyValues>();
             _kw = std::make_shared<Keywords>();
@@ -169,7 +227,25 @@ namespace obj
         Object(const Object &rhs) : Value(rhs._type)
         {
             _kv = rhs._kv;
+            _kw = rhs._kw;
         }
+
+        virtual ~Object() {
+            if (_kv.use_count()<2) {
+            for(auto i=_kv->begin();i!=_kv->end();i++) {
+                if (!i->second._owned) {
+                    delete i->second._ptr;
+                }
+            }
+            }
+        }
+
+        inline Object &set_owned(const Symbol &key, Value &value)
+        {
+            _kv->emplace(key, ValuePtr(&value, true));
+            return *this;
+        }
+
         inline Object &set(const Symbol &key, Value &value)
         {
             _kv->emplace(key, value.clone());
@@ -180,13 +256,17 @@ namespace obj
         {
             KeyValues::iterator v = _kv->find(key);
             if (v == _kv->end())
-                return *v->second;
+                return v->second.ref();
             ; //UndefinedValue::UNDEFINED;
-            return *v->second;
+            return v->second.ref();
         }
         inline Object &remove(const Symbol &key)
         {
+            auto i =_kv->find(key);
+            ValuePtr v = i->second;
+            if (!v._owned) delete v._ptr;
             _kv->erase(key);
+
             return *this;
         }
         inline bool has_value(const Symbol &key)
@@ -207,16 +287,16 @@ namespace obj
         {
             return std::shared_ptr<Value>(new Object(*this));
         }
-        virtual std::unique_ptr<Value> clone(){
-            return std::unique_ptr<Value>(new Object(*this));
+        virtual ValuePtr clone(){
+            return ValuePtr(new Object(*this), false);
         }
     };
 
-    typedef std::vector<std::unique_ptr<Value>> ValueArray;
+    typedef std::vector<ValuePtr> ValueArray;
     struct Array : Value {
         MAKE_VISITABLE(Array)
         std::shared_ptr<ValueArray> _vec;
-        Array()
+        Array() : Value(array_type)
         {
             _vec = std::make_shared<ValueArray>();
         }
@@ -225,21 +305,28 @@ namespace obj
         {
             _vec = rhs._vec;
         }
+        ~Array() {
+            if (_vec.use_count()<2) {
+            for(auto i=_vec->begin();i!=_vec->end();i++) {
+                if (!i->_owned) {
+                    delete i->_ptr;
+                }
+            }
+            }
+        }
         virtual std::shared_ptr<Value> make_shared()
         {
             return std::shared_ptr<Value>(new Array(*this));
         }
-        virtual std::unique_ptr<Value> clone(){
-            return std::unique_ptr<Value>(new Array(*this));
+        virtual ValuePtr clone(){
+            return ValuePtr(new Array(*this), false);
         }
-
         Array& push(Value& v) {
             _vec->push_back(v.clone());
             return *this;
         }
-
         inline Value & operator[](size_t idx) {
-            return *_vec->at(idx);
+            return _vec->at(idx).ref();
         }
         inline const size_t size() const {
             return _vec->size();
