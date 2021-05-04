@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 
+
 namespace obj
 {
     /// Base interface fo a visitor
@@ -45,29 +46,48 @@ namespace obj
     // Human string, system int
     struct Symbol
     {
+        static std::unordered_map<std::string, Symbol*> symbols;
         std::string _name;
         uint16_t _key;
         Symbol(const char *name, uint16_t key) : _name(name), _key(key)
         {
+            Symbol::symbols.insert({std::string(name),this});
+            //printf("Symbol %s", name);
         }
         operator const uint16_t&() const { return _key; }
         operator const std::string &() const { return _name; }
     };
     struct Value;
 
-    uint16_t UNDEFINED_SYMBOL = 0;
-    uint16_t OBJECT_SYMBOL = 1;
-    uint16_t INT_SYMBOL = 2;
-    uint16_t FLOAT_SYMBOL = 3;
-    uint16_t STRING_SYMBOL = 4;
-    uint16_t LAST_BASE_SYMBOL = 4;
+#ifdef __DEFINE_STATIC__
+    std::unordered_map<std::string, obj::Symbol*> obj::Symbol::symbols;
+    extern const uint16_t UNDEFINED_SYMBOL;
+    extern const  uint16_t OBJECT_SYMBOL;
+    extern const uint16_t INT_SYMBOL;
+    extern const uint16_t FLOAT_SYMBOL;
+    extern const uint16_t STRING_SYMBOL;
+    extern const uint16_t LAST_BASE_SYMBOL;
+    extern uint16_t SYSTEM_SYMBOLS;
+    extern uint16_t MAX_SYMBOLS; // MAX SYSTEM and USER SYMBOL
+    extern uint16_t USER_SYMBOLS;
+    extern const Symbol undefined_type; 
+    extern const Symbol object_type;
+#else 
+    extern const uint16_t UNDEFINED_SYMBOL = 0;
+    extern const uint16_t OBJECT_SYMBOL = 1;
+    extern const uint16_t INT_SYMBOL = 2;
+    extern const uint16_t FLOAT_SYMBOL = 3;
+    extern const uint16_t STRING_SYMBOL = 4;
+    extern const uint16_t LAST_BASE_SYMBOL = 4;
 
-    uint16_t SYSTEM_SYMBOLS = LAST_BASE_SYMBOL;
-    uint16_t MAX_SYMBOLS = 0x7FFF; // MAX SYSTEM and USER SYMBOL
-    uint16_t USER_SYMBOLS = 0xFFFF;
+    extern uint16_t SYSTEM_SYMBOLS = LAST_BASE_SYMBOL;
+    extern uint16_t MAX_SYMBOLS = 0x7FFF; // MAX SYSTEM and USER SYMBOL
+    extern uint16_t USER_SYMBOLS = 0xFFFF;
+    extern const Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
+    extern const Symbol object_type("object", OBJECT_SYMBOL);
+#endif
 
-    Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
-    Symbol object_type("object", OBJECT_SYMBOL);
+
     struct Value : IVisitable
     {
         MAKE_VISITABLE(Value)
@@ -115,10 +135,18 @@ namespace obj
         }
     };
 
-    const Symbol int_type("int", INT_SYMBOL);
-    Symbol int16_type("int16", INT_SYMBOL); // Types can have multiple names? Maybe useful for python
-    Symbol float_type("float", FLOAT_SYMBOL);
-    Symbol string_type("string", STRING_SYMBOL);
+    
+#ifndef __DEFINE_STATIC__
+    extern const Symbol int_type;
+    extern const Symbol int16_type;
+    extern const Symbol float_type;
+    extern const Symbol string_type;
+#else
+    extern const Symbol int_type("int", INT_SYMBOL);
+    extern const Symbol int16_type("int16", INT_SYMBOL); // Types can have multiple names? Maybe useful for python
+    extern const Symbol float_type("float", FLOAT_SYMBOL);
+    extern const Symbol string_type("string", STRING_SYMBOL);
+#endif
 
     typedef TValue<int, int_type> Int;
     typedef TValue<float, float_type> Float;

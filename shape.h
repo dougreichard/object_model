@@ -20,7 +20,12 @@ namespace Prop
     const PropertySymbol H("H");
 }; // namespace ES
 
-SystemSymbol circle_type("Circle");
+#ifdef __DEFINE_STATIC__
+    SystemSymbol circle_type("DynCircle");
+#else 
+extern SystemSymbol circle_type;
+#endif
+
 struct Circle : Object
 {
     MAKE_VISITABLE(Circle)
@@ -63,7 +68,11 @@ struct Circle : Object
     inline Int& r() {return _r;}
 };
 
-SystemSymbol dyn_circle_type("DynCircle");
+#ifdef __DEFINE_STATIC__
+    SystemSymbol dyn_circle_type("DynCircle");
+#else 
+extern SystemSymbol dyn_circle_type;
+#endif
 struct DynCircle : Object
 {
     MAKE_VISITABLE(DynCircle)
@@ -82,7 +91,13 @@ struct DynCircle : Object
 };
 
 
-SystemSymbol rect_type("Rect");
+#ifdef __DEFINE_STATIC__
+    SystemSymbol rect_type("Rect");
+#else 
+    extern SystemSymbol rect_type;
+#endif
+
+
 struct Rect : Object
 {
     MAKE_VISITABLE(Rect)
