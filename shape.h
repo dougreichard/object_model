@@ -13,11 +13,19 @@ namespace Prop
 {
     // Symbol can be used as a string
     // or as an uint16_t
-    const PropertySymbol X("X");
-    const PropertySymbol Y("Y");
-    const PropertySymbol R("R");
-    const PropertySymbol W("W");
-    const PropertySymbol H("H");
+    #ifndef __DEFINE_STATIC__
+        extern const PropertySymbol X;
+        extern const PropertySymbol Y;
+        extern const PropertySymbol R;
+        extern const PropertySymbol W;
+        extern const PropertySymbol H;
+    #else
+        extern const PropertySymbol X("X");
+        extern const PropertySymbol Y("Y");
+        extern const PropertySymbol R("R");
+        extern const PropertySymbol W("W");
+        extern const PropertySymbol H("H");
+    #endif
 }; // namespace ES
 
 #ifdef __DEFINE_STATIC__

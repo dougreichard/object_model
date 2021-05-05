@@ -56,7 +56,7 @@ namespace obj
         Symbol(const char *name, uint16_t key) : _name(name), _key(key)
         {
             Symbol::symbols.insert({std::string(name),this});
-            //printf("Symbol %s", name);
+            //printf("-%s-", name);
         }
         operator const uint16_t&() const { return _key; }
         operator const std::string &() const { return _name; }
@@ -105,7 +105,7 @@ namespace obj
         }
         ValuePtr(const ValuePtr& rhs) : _ptr(rhs._ptr), _owned(rhs._owned) {
         }
-          inline Value* operator* () {return get();}
+        inline Value* operator* () {return get();}
         inline Value* operator-> () {return get();}
         inline Value* get(){return _ptr;};
         inline Value& ref() {return *get();}
@@ -123,15 +123,23 @@ namespace obj
     };
   
 
-    // struct UndefinedValue : Value
-    // {
-    //     static UndefinedValue& UNDEFINED;
-    //     UndefinedValue() : Value(undefined_type) {}
-    //     virtual std::shared_ptr<Value>& make_shared() {
-    //         return std::make_shared<Value>(UndefinedValue());
-    //     }
-    // };
-    // UndefinedValue& UndefinedValue::UNDEFINED = UndefinedValue();
+    struct UndefinedValue : Value
+    {
+        static UndefinedValue& UNDEFINED;
+        UndefinedValue() : Value(undefined_type) {}
+        virtual std::shared_ptr<Value> make_shared()
+        {
+            // This might be wrong
+            return std::shared_ptr<Value>(new UndefinedValue(*this));
+        }
+        virtual ValuePtr clone(){
+            // This might be wrong
+            return ValuePtr(new UndefinedValue(*this), false);
+        }
+    };
+    #ifdef __DEFINE_STATIC__
+        UndefinedValue& UndefinedValue::UNDEFINED = UndefinedValue();
+    #endif
 
     template <typename T, const Symbol &name>
     struct TValue : Value
@@ -256,7 +264,7 @@ namespace obj {
         {
             KeyValues::iterator v = _kv->find(key);
             if (v == _kv->end())
-                return v->second.ref();
+                return  UndefinedValue::UNDEFINED;
             ; //UndefinedValue::UNDEFINED;
             return v->second.ref();
         }

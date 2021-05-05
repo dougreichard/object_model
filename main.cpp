@@ -134,6 +134,13 @@ void main()
     Circle c2(c); // These are the same circle
     c2.y() = 25;   // Access and Change as an IntValue
     c2.x() = 33;  // Access and change as just a plain int
+    ((Int&)c2.get(Prop::X)) = 44;
+    auto got = Symbol::symbols.find("X");
+    ((Int&)c2.get(*got->second)) = 55;
+    
+    Value& X = c2.get(*got->second);
+    printf("%s", X._type._name.c_str());
+
 
     DynCircle dc(10, 20, 5);
     dc.x() = 14;

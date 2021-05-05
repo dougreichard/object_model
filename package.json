@@ -8,7 +8,7 @@
     "build:py": "python setup.py build && copy build\\lib.win-amd64-3.8\\*.pyd",
     "test:py": "python test.py",
     "bench": "build\\bench.exe",
-    "build:bench": "cl -nologo -EHsc /GS /GL /W3 /WX- /Gy /Zi /Gm- /O2  /GR  /Gd /Oi /MD /FC /Zc:inline /fp:precise -Zc:forScope -Zc:wchar_t /Fobuild\\ /Fdbuild\\vc140.pdb -Febuild\\bench bench.cpp",
+    "build:bench": "cl -nologo -EHsc /GS /GL /W3 /WX- /Gy /Zi /Gm- /O2  /GR  /Gd /Oi /MD /FC /Zc:inline /fp:precise -Zc:forScope -Zc:wchar_t /Fobuild\\ /Fdbuild\\vc140.pdb -Febuild\\bench statics.cpp bench.cpp",
     "build:main": "cl -nologo -EHsc /GS /GL /W3 /WX- /Gy /Zi /Gm- /O2  /GR  /Gd /Oi /MD /FC /Zc:inline /fp:precise -Zc:forScope -Zc:wchar_t  /Fobuild\\ /Fdbuild\\vc140.pdb -Febuild\\main  statics.cpp main.cpp"
   },
   "keywords": [],

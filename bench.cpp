@@ -33,7 +33,7 @@ void time_set_get_accessor()  {
     Circle c(10, 20, 5);
     auto start = high_resolution_clock::now(); 
     for(int i=0;i<ITERATIONS;i++) {
-        c.px() = i;
+        c.x() = i;
     }
     auto stop = high_resolution_clock::now(); 
     auto duration = duration_cast<microseconds>(stop - start); 

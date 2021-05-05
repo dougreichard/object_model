@@ -42,8 +42,9 @@ PyObject *py_circle_get_attro(PyObject *self, PyObject *attrName) {
         Symbol* s = got->second;
         PyCircle* c = (PyCircle*)self;
         Value& v = c->circle->get(*s);
-        if (v._type._key == obj::INT_SYMBOL) {
-            return PyLong_FromLong(123);//(Int)v);
+         
+        if (v._type == obj::INT_SYMBOL) {
+           return PyLong_FromLong((Int&)v);
         }
     }
     Py_RETURN_NONE;
