@@ -1,9 +1,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "shape.h"
+#include "py_circle.h"
 
-
-// 
 typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */
@@ -70,27 +69,20 @@ int py_circle_set_attro(PyObject *self, PyObject *attrName, PyObject* value) {
 }
 
 
-static PyMethodDef PyCircle_methods[] = {
+extern PyMethodDef PyCircle_methods[] = {
     // {"Func", (PyCFunction) py_func_wrapper, METH_NOARGS,
     //  "Description"
     // },
     {NULL}  /* Sentinel */
 };
 
-
-static PyTypeObject PyCircleType = {
+//
+extern PyTypeObject PyCircleType = {
     PyVarObject_HEAD_INIT(NULL, 0)
 };
 
-
-static PyModuleDef py_shape_module = {
-    PyModuleDef_HEAD_INIT,
-};
-
-
-extern "C" PyMODINIT_FUNC  PyInit_shapes(void)
-{
-    // Finish initializing Gateway object
+extern PyTypeObject* get_circle_type() {
+// Finish initializing Gateway object
     PyCircleType.tp_name = "shapes.Circle";
     PyCircleType.tp_basicsize = sizeof(PyCircle);
     PyCircleType.tp_itemsize = 0;
@@ -102,29 +94,5 @@ extern "C" PyMODINIT_FUNC  PyInit_shapes(void)
     PyCircleType.tp_dealloc = (destructor) py_circle_dealloc;
     PyCircleType.tp_getattro = (getattrofunc) py_circle_get_attro;
     PyCircleType.tp_setattro = (setattrofunc) py_circle_set_attro;
-
-    // Finish initializing shape module
-    py_shape_module.m_name = "shapes";
-    py_shape_module.m_doc = "Example module that creates an extension type.";
-    py_shape_module.m_size = -1;
-
-    //cout << "Got here";
-    PyObject *m;
-    if (PyType_Ready(&PyCircleType) < 0)
-        return NULL;
-
-
-    m = PyModule_Create(&py_shape_module);
-    if (m == NULL)
-        return NULL;
-
-    Py_INCREF(&PyCircleType);
-    if (PyModule_AddObject(m, "Circle", (PyObject *) &PyCircleType) < 0) {
-        Py_DECREF(&PyCircleType);
-        Py_DECREF(m);
-        return NULL;
-    }
-  
-    return m;
+    return &PyCircleType;
 }
-

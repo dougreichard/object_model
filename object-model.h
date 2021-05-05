@@ -91,8 +91,9 @@ namespace obj
     extern uint16_t MAX_SYMBOLS = 0x7FFF; // MAX SYSTEM and USER SYMBOL
     extern uint16_t USER_SYMBOLS = 0xFFFF;
     extern const Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
-    extern const Symbol object_type("object", OBJECT_SYMBOL);
+    extern const Symbol object_type("Object", OBJECT_SYMBOL);
     extern const Symbol array_type("Array", ARRAY_SYMBOL);
+
 #endif
 
 
@@ -263,9 +264,9 @@ namespace obj {
         inline Value &get(const Symbol &key)
         {
             KeyValues::iterator v = _kv->find(key);
-            if (v == _kv->end())
+            if (v == _kv->end()){
                 return  UndefinedValue::UNDEFINED;
-            ; //UndefinedValue::UNDEFINED;
+            }
             return v->second.ref();
         }
         inline Object &remove(const Symbol &key)

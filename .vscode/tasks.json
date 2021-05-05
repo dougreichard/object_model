@@ -7,8 +7,11 @@
             "args": [
                 "/Zi",
                 "/EHsc",
+                "/Fobuild\\",
+                "/Fdbuild\\vc140.pdb",
                 "/Fe:",
                 "${workspaceFolder}\\build\\main.exe",
+                "statics.cpp",
                 "main.cpp"
             ],
             "options": {
@@ -32,6 +35,7 @@
                 "/EHsc",
                 "/Fe:",
                 "${workspaceFolder}\\build\\bench.exe",
+                "statics.cpp",
                 "bench.cpp"
             ],
             "options": {

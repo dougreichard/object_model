@@ -1,7 +1,11 @@
 from distutils.core import setup, Extension
 
 module1 = Extension('shapes',
-                    sources = [ "statics.cpp", 'main_py.cpp'],
+                    sources = [ "statics.cpp", 
+                     'py_circle.cpp', 
+                     'py_object.cpp',
+                     'py_symbol.cpp',
+                     'py_module.cpp'],
                     #  include_dirs=['../../include'],
                     #  library_dirs=['../../target/release/'],
                     #  libraries=['cape_core.dll'],
