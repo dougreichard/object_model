@@ -37,6 +37,7 @@ namespace Prop
 struct Circle : Object
 {
     MAKE_VISITABLE_POLY(Circle, Object)
+    MAKE_OBJECT_POLY(Circle)
     Circle(const Circle& rhs) : Object(rhs) {
         _x = rhs._x;
         _y = rhs._y;
@@ -71,6 +72,20 @@ struct Circle : Object
             return _r;
         }
         return Object::get(key);
+    }
+    inline Object& set(const Symbol &key, Value& value)
+    {
+        if (key== Prop::X){
+            _x = (Int&)value;
+        } else if (key== Prop::Y){
+            _y = (Int&)value;
+        } else if (key== Prop::R){
+            _r = (Int&)value;
+        } else {
+            return Object::set(key, value);
+        }
+        return *this;
+        
     }
     virtual std::shared_ptr<Value> make_shared()
     {

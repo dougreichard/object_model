@@ -40,6 +40,14 @@ namespace obj
         void accept(IVisitor *v) { \
             IVisit<T> *visit_me = dynamic_cast<IVisit<T> *>(v); \
             if (visit_me) visit_me->visit((T&)*this); else B::accept(v);}
+    //////////////////////////////////////////////////
+    // This adds virtual version of get, set, remove
+    // these are slower than the inline versions
+    // 
+    #define MAKE_OBJECT_POLY(T) \
+        virtual Object &poly_set(const Symbol &key, Value &value){return this->set(key,value);} \
+        virtual Value &poly_get(const Symbol &key){return this->get(key);} \
+        virtual Object &poly_remove(const Symbol &key) {return this->remove(key);} 
 
     // Used to build visitors
     template <typename T>
@@ -251,13 +259,13 @@ namespace obj {
 
         inline Object &set_owned(const Symbol &key, Value &value)
         {
-            _kv->emplace(key, ValuePtr(&value, true));
+            _kv->insert_or_assign(key, ValuePtr(&value, true));
             return *this;
         }
 
         inline Object &set(const Symbol &key, Value &value)
         {
-            _kv->emplace(key, value.clone());
+            _kv->insert_or_assign(key, value.clone());
             return *this;
         }
         
@@ -298,6 +306,20 @@ namespace obj {
         }
         virtual ValuePtr clone(){
             return ValuePtr(new Object(*this), false);
+        }
+
+        // These are virtual/poly morphic, but slower then the inlines 
+        virtual Object &poly_set(const Symbol &key, Value &value)
+        {
+            return this->set(key,value);
+        }
+        
+        virtual Value &poly_get(const Symbol &key)
+        {
+            return this->get(key);
+        }
+        virtual Object &poly_remove(const Symbol &key) {
+            return this->remove(key);
         }
     };
 
