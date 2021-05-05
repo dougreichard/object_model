@@ -61,9 +61,28 @@ int py_dyn_object_set_attro(PyObject *self, PyObject *attrName, PyObject* value)
         PyDynObject* obj = (PyDynObject*)self;
         //////////////////
         //
+         Int i = PyLong_AsLong(value);
+        obj->object->set(*s, i);
+        // Value& v = obj->object->get(*s);
+        // if (PyLong_Check(value)) {
+        //     if (v._type._key == UNDEFINED_SYMBOL) {
+        //         Int i = PyLong_AsLong(value);
+        //         obj->object->set(*s, i);
+        //     } else {
+        //         ((Int&)v) = (int)PyLong_AsLong(value);
+        //     }
+            
+        // }
+        return 0;
+    } else {
+        // First time setting
+        Symbol* s = got->second;
+        PyDynObject* obj = (PyDynObject*)self;
+        //////////////////
+        // SEt is mujch slower that get+assign
         if (PyLong_Check(value)) {
             Int i = PyLong_AsLong(value);
-            obj->object->set(*s,i);
+            obj->object->set(*s, i);
         }
         return 0;
     }

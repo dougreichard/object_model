@@ -4,6 +4,7 @@ def main():
     print("Python module")
     #############################
     ## Pure C++ object wrapped
+    c1 = shapes.Circle()
     c = shapes.Circle()
     print(c.X) # Prints 0
     print(c.R) # prints 1
@@ -19,6 +20,8 @@ def main():
     ## NEED a better way to add symbols and avoid duplicates
     s = shapes.Symbol("Gromit")
     o.Gromit = 12
+    o.Gromit = 13
+    o.Gromit = 14
     print(o.Gromit)
 
 

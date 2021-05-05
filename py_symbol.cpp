@@ -18,7 +18,7 @@ py_symbol_init(PySymbol *self, PyObject *args, PyObject *kws)
     const char *name;
     if (!PyArg_ParseTuple(args, "s", &name))
          return -1;    
-    Symbol* symbol = new UserSymbol(name);
+    Symbol* symbol = Symbol::get_or_create_symbol(name);
     self->symbol = symbol;
     return 0;
 }
@@ -26,9 +26,7 @@ py_symbol_init(PySymbol *self, PyObject *args, PyObject *kws)
 static void 
 py_symbol_dealloc(PySymbol *self) {
     PyTypeObject *tp = Py_TYPE(self);
-    // free references and buffers here
-    delete (self->symbol);
-
+    // The engine owns symbols
     tp->tp_free(self);
     Py_DECREF(tp);
 }
@@ -57,7 +55,7 @@ extern PyTypeObject* get_symbol_type() {
     PySymbolType.tp_new = PyType_GenericNew;
     PySymbolType.tp_methods = PySymbol_methods;
     PySymbolType.tp_init = (initproc) py_symbol_init;
-    PySymbolType.tp_dealloc = (destructor) py_symbol_dealloc;
+   // PySymbolType.tp_dealloc = (destructor) py_symbol_dealloc;
     //PySymbolType.tp_getattro = (getattrofunc) py_symbol_get_attro;
     //PySymbolType.tp_setattro = (setattrofunc) py_symbol_set_attro;
     return &PySymbolType;

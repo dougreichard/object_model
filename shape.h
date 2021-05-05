@@ -11,100 +11,120 @@ using namespace obj;
 // Like cross cutting data
 namespace Prop
 {
-    // Symbol can be used as a string
-    // or as an uint16_t
-    #ifndef __DEFINE_STATIC__
-        extern const PropertySymbol X;
-        extern const PropertySymbol Y;
-        extern const PropertySymbol R;
-        extern const PropertySymbol W;
-        extern const PropertySymbol H;
-    #else
-        extern const PropertySymbol X("X");
-        extern const PropertySymbol Y("Y");
-        extern const PropertySymbol R("R");
-        extern const PropertySymbol W("W");
-        extern const PropertySymbol H("H");
-    #endif
+// Symbol can be used as a string
+// or as an uint16_t
+#ifndef __DEFINE_STATIC__
+    extern const PropertySymbol X;
+    extern const PropertySymbol Y;
+    extern const PropertySymbol R;
+    extern const PropertySymbol W;
+    extern const PropertySymbol H;
+#else
+    extern const PropertySymbol X("X");
+    extern const PropertySymbol Y("Y");
+    extern const PropertySymbol R("R");
+    extern const PropertySymbol W("W");
+    extern const PropertySymbol H("H");
+#endif
 }; // namespace ES
 
+
 #ifdef __DEFINE_STATIC__
-    extern SystemSymbol circle_type("Circle");
-#else 
-    extern SystemSymbol circle_type;
+extern SystemSymbol circle_type("Circle");
+#else
+extern SystemSymbol circle_type;
 #endif
 
 struct Circle : Object
 {
     MAKE_VISITABLE_POLY(Circle, Object)
     MAKE_OBJECT_POLY(Circle)
-    Circle(const Circle& rhs) : Object(rhs) {
+    static const Metadata& metadata;
+    Circle(const Circle &rhs) : Object(rhs)
+    {
         _x = rhs._x;
         _y = rhs._y;
         _r = rhs._r;
-        add_owned_props();
+    }
+    Circle(const Metadata& meta = Circle::metadata) : Object(metadata) {
+    
     }
     Circle(int x, int y, int r) : Object(circle_type)
     {
         _x = x;
         _y = y;
         _r = r;
-        add_owned_props();
     }
-    // This adds the class members to the 
+    // This adds the class members to the
     // key/value map
     // This way they are avaible when enumerating key/values
-    void add_owned_props() {
-        set_owned(Prop::X, _x);
-        set_owned(Prop::Y, _y);
-        set_owned(Prop::R, _r);
-    }
+   
     Int _x;
     Int _y;
     Int _r;
     inline Value &get(const Symbol &key)
     {
-        if (key== Prop::X){
+        if (key == Prop::X)
+        {
             return _x;
-        } else if (key== Prop::Y){
+        }
+        else if (key == Prop::Y)
+        {
             return _y;
-        } else if (key== Prop::R){
+        }
+        else if (key == Prop::R)
+        {
             return _r;
         }
         return Object::get(key);
     }
-    inline Object& set(const Symbol &key, Value& value)
+    inline Object &set(const Symbol &key, Value &value)
     {
-        if (key== Prop::X){
-            _x = (Int&)value;
-        } else if (key== Prop::Y){
-            _y = (Int&)value;
-        } else if (key== Prop::R){
-            _r = (Int&)value;
-        } else {
+        if (key == Prop::X)
+        {
+            _x = (Int &)value;
+        }
+        else if (key == Prop::Y)
+        {
+            _y = (Int &)value;
+        }
+        else if (key == Prop::R)
+        {
+            _r = (Int &)value;
+        }
+        else
+        {
             return Object::set(key, value);
         }
         return *this;
-        
     }
     virtual std::shared_ptr<Value> make_shared()
     {
-        return std::shared_ptr<Value>(new Circle(_x,_y,_r));
+        return std::shared_ptr<Value>(new Circle(_x, _y, _r));
     }
-    virtual ValuePtr clone(){
-        return ValuePtr(new Circle(_x,_y,_r), false);
+    virtual ValuePtr clone()
+    {
+        return ValuePtr(new Circle(_x, _y, _r), false);
     }
 
-    inline Int& px() {return (Int&)get(Prop::X);}
-    inline Int& x() {return _x;}
-    inline Int& y() {return _y;}
-    inline Int& r() {return _r;}
+    inline Int &px() { return (Int &)get(Prop::X); }
+    inline Int &x() { return _x; }
+    inline Int &y() { return _y; }
+    inline Int &r() { return _r; }
 };
+#ifdef __DEFINE_STATIC__
+const Metadata& Circle::metadata{{
+    {Prop::X, int_type, Int(0), true},
+    {Prop::Y, int_type, Int(0), true},
+    {Prop::R, int_type, Int(0), true},
+}};
+#endif
+
 
 #ifdef __DEFINE_STATIC__
-    extern SystemSymbol dyn_circle_type("DynCircle");
-#else 
-    extern SystemSymbol dyn_circle_type;
+extern SystemSymbol dyn_circle_type("DynCircle");
+#else
+extern SystemSymbol dyn_circle_type;
 #endif
 struct DynCircle : Object
 {
@@ -118,18 +138,17 @@ struct DynCircle : Object
     int &x() { return (Int &)get(Prop::X); }
     int &y() { return (Int &)get(Prop::Y); }
     int &r() { return (Int &)get(Prop::R); }
-    virtual ValuePtr clone(){
+    virtual ValuePtr clone()
+    {
         return ValuePtr(new DynCircle(*this), false);
     }
 };
 
-
 #ifdef __DEFINE_STATIC__
-    SystemSymbol rect_type("Rect");
-#else 
-    extern SystemSymbol rect_type;
+SystemSymbol rect_type("Rect");
+#else
+extern SystemSymbol rect_type;
 #endif
-
 
 struct Rect : Object
 {
@@ -145,8 +164,8 @@ struct Rect : Object
     int &y() { return (Int &)get(Prop::Y); }
     int &w() { return (Int &)get(Prop::W); }
     int &h() { return (Int &)get(Prop::H); }
-    virtual ValuePtr clone(){
+    virtual ValuePtr clone()
+    {
         return ValuePtr(new Rect(*this), false);
     }
 };
-
