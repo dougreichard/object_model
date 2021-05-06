@@ -35,14 +35,13 @@ py_dyn_object_dealloc(PyDynObject *self) {
 PyObject *py_dyn_object_get_attro(PyObject *self, PyObject *attrName) {
     const char *attr = PyUnicode_AsUTF8(attrName);
     // This should look up the symbol for attr
-    auto got = Symbol::symbols.find(attr);
-    if ( got == Symbol::symbols.end() ) {
-        Py_RETURN_NONE;
+   Symbol& got = Scope<Symbol>::instance().get(attr);
+    if ( got == Symbol::get_undefined() ) {
+           Py_RETURN_NONE;
     }  else
     {
-        Symbol* s = got->second;
         PyDynObject* c = (PyDynObject*)self;
-        Value& v = c->object->get(*s);
+        Value& v = c->object->get(got);
         if (v._type == obj::INT_SYMBOL) {
            return PyLong_FromLong((Int&)v);
         } else {
@@ -55,14 +54,13 @@ PyObject *py_dyn_object_get_attro(PyObject *self, PyObject *attrName) {
 int py_dyn_object_set_attro(PyObject *self, PyObject *attrName, PyObject* value) {
     const char *attr = PyUnicode_AsUTF8(attrName);
     
-    auto got = Symbol::symbols.find(attr);
-    if ( got != Symbol::symbols.end() ) {
-        Symbol* s = got->second;
-        PyDynObject* obj = (PyDynObject*)self;
+     Symbol& got = Scope<Symbol>::instance().get(attr);
+    if ( got != Symbol::get_undefined() ) {
+       PyDynObject* obj = (PyDynObject*)self;
         //////////////////
         //
          Int i = PyLong_AsLong(value);
-        obj->object->set(*s, i);
+        obj->object->set(got, i);
         // Value& v = obj->object->get(*s);
         // if (PyLong_Check(value)) {
         //     if (v._type._key == UNDEFINED_SYMBOL) {
@@ -76,13 +74,12 @@ int py_dyn_object_set_attro(PyObject *self, PyObject *attrName, PyObject* value)
         return 0;
     } else {
         // First time setting
-        Symbol* s = got->second;
         PyDynObject* obj = (PyDynObject*)self;
         //////////////////
         // SEt is mujch slower that get+assign
         if (PyLong_Check(value)) {
             Int i = PyLong_AsLong(value);
-            obj->object->set(*s, i);
+            obj->object->set(got, i);
         }
         return 0;
     }

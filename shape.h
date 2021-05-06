@@ -13,31 +13,20 @@ namespace Prop
 {
 // Symbol can be used as a string
 // or as an uint16_t
-#ifndef __DEFINE_STATIC__
-    extern const PropertySymbol X;
-    extern const PropertySymbol Y;
-    extern const PropertySymbol R;
-    extern const PropertySymbol W;
-    extern const PropertySymbol H;
-#else
-    extern const PropertySymbol X("X");
-    extern const PropertySymbol Y("Y");
-    extern const PropertySymbol R("R");
-    extern const PropertySymbol W("W");
-    extern const PropertySymbol H("H");
-#endif
+    static const inline PropertySymbol X("X");
+    static const inline PropertySymbol Y("Y");
+    static const inline PropertySymbol R("R");
+    static const inline PropertySymbol W("W");
+    static const inline PropertySymbol H("H");
+
 }; // namespace ES
 
 
-#ifdef __DEFINE_STATIC__
-extern SystemSymbol circle_type("Circle");
-#else
-extern SystemSymbol circle_type;
-#endif
 
+static inline SystemSymbol circle_type("Circle");
 struct Circle : Object
 {
-    MAKE_VISITABLE_POLY(Circle, Object)
+    MAKE_VISITABLE(Circle, Object)
     MAKE_OBJECT_POLY(Circle)
     static const Metadata& metadata;
     Circle(const Circle &rhs) : Object(rhs)
@@ -112,23 +101,24 @@ struct Circle : Object
     inline Int &y() { return _y; }
     inline Int &r() { return _r; }
 };
-#ifdef __DEFINE_STATIC__
-const Metadata& Circle::metadata{{
-    {Prop::X, int_type, Int(0), true},
-    {Prop::Y, int_type, Int(0), true},
-    {Prop::R, int_type, Int(0), true},
+
+const inline Metadata& Circle::metadata{{
+    {Prop::X, int_type, defaultInt, true},
+    {Prop::Y, int_type, defaultInt, true},
+    {Prop::R, int_type, defaultInt, true},
 }};
-#endif
 
 
-#ifdef __DEFINE_STATIC__
-extern SystemSymbol dyn_circle_type("DynCircle");
-#else
-extern SystemSymbol dyn_circle_type;
-#endif
+
+
+static const inline SystemSymbol dyn_circle_type("DynCircle");
 struct DynCircle : Object
 {
-    MAKE_VISITABLE_POLY(DynCircle, Object)
+    MAKE_VISITABLE(DynCircle, Object)
+    static const Metadata& metadata;
+    DynCircle(const Metadata& meta = DynCircle::metadata) : Object(metadata) {
+    
+    }
     DynCircle(int x, int y, int r) : Object(dyn_circle_type)
     {
         set(Prop::X, Int(x));
@@ -144,15 +134,24 @@ struct DynCircle : Object
     }
 };
 
-#ifdef __DEFINE_STATIC__
-SystemSymbol rect_type("Rect");
-#else
-extern SystemSymbol rect_type;
-#endif
+const inline  Metadata& DynCircle::metadata{{
+    {Prop::X, int_type, defaultInt, false},
+    {Prop::Y, int_type, defaultInt, false},
+    {Prop::R, int_type, defaultInt, false},
+}};
 
+
+
+
+static const inline SystemSymbol rect_type("Rect");
 struct Rect : Object
 {
-    MAKE_VISITABLE_POLY(Rect, Object)
+    MAKE_VISITABLE(Rect, Object)
+    static const Metadata& metadata;
+    Rect(const Metadata& meta = Rect::metadata) : Object(metadata) {
+    
+    }
+
     Rect(int x, int y, int w, int h) : Object(rect_type)
     {
         set(Prop::X, Int(x));
@@ -169,3 +168,11 @@ struct Rect : Object
         return ValuePtr(new Rect(*this), false);
     }
 };
+
+const inline Metadata& Rect::metadata{{
+    {Prop::X, int_type, defaultInt, false},
+    {Prop::Y, int_type, defaultInt, false},
+    {Prop::W, int_type, defaultInt, false},
+    {Prop::W, int_type, defaultInt, false},
+}};
+

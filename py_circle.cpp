@@ -33,14 +33,13 @@ py_circle_dealloc(PyCircle *self) {
 PyObject *py_circle_get_attro(PyObject *self, PyObject *attrName) {
     const char *attr = PyUnicode_AsUTF8(attrName);
     // This should look up the symbol for attr
-    auto got = Symbol::symbols.find(attr);
-    if ( got == Symbol::symbols.end() ) {
+    Symbol& got = Scope<Symbol>::instance().get(attr);
+    if ( got == Symbol::get_undefined() ) {
         Py_RETURN_NONE;
     }  else
     {
-        Symbol* s = got->second;
         PyCircle* c = (PyCircle*)self;
-        Value& v = c->circle->get(*s);
+        Value& v = c->circle->get(got);
          
         if (v._type == obj::INT_SYMBOL) {
            return PyLong_FromLong((Int&)v);
@@ -54,11 +53,10 @@ int py_circle_set_attro(PyObject *self, PyObject *attrName, PyObject* value) {
     //  if (!PyArg_ParseTuple(argList, "s", &attr))
     //     return NULL;    
     // This should look up the symbol for attr
-    auto got = Symbol::symbols.find(attr);
-    if ( got != Symbol::symbols.end() ) {
-        Symbol* s = got->second;
+    auto got = Scope<Symbol>::instance().get(attr);
+    if ( got != Symbol::get_undefined() ) {
         PyCircle* c = (PyCircle*)self;
-        Value& v = c->circle->get(*s);
+        Value& v = c->circle->get(got);
         if (v._type._key == obj::INT_SYMBOL) {
             Int& i = (Int&)v;
             i = PyLong_AsLong(value);

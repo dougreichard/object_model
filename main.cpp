@@ -1,8 +1,9 @@
+//#define USE_VISITOR_POLY
 #include "shape.h"
 #include <iostream>
 #include <sstream>
 
-
+#ifdef USE_VISITOR_ANY
 struct Print_Trait_2D : IVisitor, IVisit<Circle>, IVisit<Rect>, IVisit<DynCircle>, IVisit<Int>
 
 {
@@ -119,7 +120,7 @@ IVisit<Int>
         xml <<   i;
     }
 };
-
+#endif
 
 
 void main()
@@ -135,10 +136,10 @@ void main()
     c2.y() = 25;   // Access and Change as an IntValue
     c2.x() = 33;  // Access and change as just a plain int
     ((Int&)c2.get(Prop::X)) = 44;
-    auto got = Symbol::symbols.find("X");
-    ((Int&)c2.get(*got->second)) = 55;
+    auto got = Scope<Symbol>::instance().get("X");
+    ((Int&)c2.get(got)) = 55;
     
-    Value& X = c2.get(*got->second);
+    Value& X = c2.get(got);
     printf("%s", X._type._name.c_str());
 
 
@@ -152,6 +153,31 @@ void main()
     Rect r(1,2,3,4);
     r.set(Prop::R, Int(2));
 
+    Symbolic EMP(Prop::X);
+    Symbolic Torp(Prop::H);
+    Int64 fred = Torp._value;
+
+    
+    const SystemSymbol& MinRectSymbol("MinRect");
+    const Metadata& min_metadata{
+    {
+    {Prop::X, int_type, defaultInt, false},
+    {Prop::Y, int_type, defaultInt, false},
+    {Prop::W, int_type, defaultInt, false},
+    {Prop::H, int_type, defaultInt, false},
+    }};
+
+    /* 
+    typedef Enum<TorpSymbol, Int> Torps; 
+    const Torps& EMP {"EMP", 0x01};
+    const Torps& PSHOCK {"PSHOCK", 0x02};
+    const Torps& ATTRACT {"ATTRACT", 0x04};
+
+    o.torp = EMP;
+    */
+
+    Object min_rect(min_metadata);
+
     SystemSymbol round_rect_type("rect");   
     r.add_role(round_rect_type);
     if (r.has_role(round_rect_type)) {
@@ -161,7 +187,7 @@ void main()
     if (!r.has_role(round_rect_type)) {
         std::cout << "Role removed";
     }
-
+#ifdef USE_VISITOR_ANY
     Print_Trait_2D v;
     Array arr;
     arr.push(c2);
@@ -192,5 +218,6 @@ void main()
         JSON_Export json;
         arr.accept(&json);
     }
+#endif
 
 }

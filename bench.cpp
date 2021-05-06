@@ -4,6 +4,7 @@
 #include <chrono> 
 using namespace std::chrono; 
 
+#ifdef USE_VISITOR_ANY
 struct SetViaVisit  : IVisitor, 
     IVisit<Circle>
     {
@@ -13,7 +14,7 @@ struct SetViaVisit  : IVisitor,
         c._x =value;
     }
 };
-
+#endif
   
 const int ITERATIONS = 100000;
 void time_set_value()  {
@@ -133,6 +134,8 @@ void time_set_via_poly_get_function()  {
     if (x)  std::cout << duration.count() << "us"  << std::endl; 
 }
 void time_set_visitor()  {
+    
+#ifdef USE_VISITOR_ANY
     std::cout << "set class Value via visitor: ";
     Circle c(10, 20, 5);
     SetViaVisit v;
@@ -145,7 +148,7 @@ void time_set_visitor()  {
     auto duration = duration_cast<microseconds>(stop - start); 
     // the if makes sure the code is not optimized out
     if (c._x)  std::cout << duration.count() << "us"  << std::endl; 
-
+#endif
 }
 
 

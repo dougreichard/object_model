@@ -18,7 +18,7 @@ py_symbol_init(PySymbol *self, PyObject *args, PyObject *kws)
     const char *name;
     if (!PyArg_ParseTuple(args, "s", &name))
          return -1;    
-    Symbol* symbol = Symbol::get_or_create_symbol(name);
+    Symbol* symbol = Scope<Symbol>::instance().get_or_create_symbol<UserSymbol>(name);
     self->symbol = symbol;
     return 0;
 }
