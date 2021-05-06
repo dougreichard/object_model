@@ -10,10 +10,12 @@ namespace obj
     static const inline uint64_t LONG_SYMBOL = 3;
     static const inline uint64_t LONG_LONG_SYMBOL = 4;
     static const inline uint64_t FLOAT_SYMBOL = 5;
-    static const inline uint64_t STRING_SYMBOL = 6;
-    static const inline uint64_t ARRAY_SYMBOL = 7;
-    static const inline uint64_t VALUE_AS_SYMBOL = 8;
-    static const inline uint64_t LAST_BASE_SYMBOL = 8;
+    static const inline uint64_t DOUBLE_SYMBOL = 6;
+    static const inline uint64_t LONG_DOUBLE_SYMBOL = 7;
+    static const inline uint64_t STRING_SYMBOL = 8;
+    static const inline uint64_t ARRAY_SYMBOL = 9;
+    static const inline uint64_t VALUE_AS_SYMBOL = 10;
+    static const inline uint64_t LAST_BASE_SYMBOL = 10;
 
     
     static const inline Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
@@ -28,6 +30,9 @@ namespace obj
     static const inline Symbol int64_type("Int64", LONG_LONG_SYMBOL);
     
     static const inline Symbol float_type("Float", FLOAT_SYMBOL);
+    static const inline Symbol double_type("Double", DOUBLE_SYMBOL);
+    static const inline Symbol long_double_type("LongDouble", DOUBLE_SYMBOL);
+
     static const inline Symbol string_type("String", STRING_SYMBOL);
     static const inline Symbol symbolic_type("Symbolic", VALUE_AS_SYMBOL);
     
@@ -37,6 +42,10 @@ namespace obj
     typedef TValue<int64_t, int64_type> Int64;
 
     typedef TValue<float, float_type> Float;
+    typedef TValue<double, double_type> Double;
+    typedef TValue<long double, long_double_type> LongDouble;
+    
+
     typedef TValue<std::string, string_type> String;
     typedef TValue<Symbol, symbolic_type> Symbolic;
 
@@ -61,8 +70,12 @@ namespace obj
 
 
     // This may be a memory leak
-    extern const inline ValuePtr defaultInt(new Int(0), true);
-    extern const inline ValuePtr defaultFloat(new Float(0), true);
-    extern const inline ValuePtr defaultString(new String(""), true);
+    static const inline ValuePtr defaultInt(new Int(0), false);
+    static const inline ValuePtr defaultInt32(new Int32(0),false);
+    static const inline ValuePtr defaultInt64(new Int64(0), false);
+    static const inline ValuePtr defaultFloat(new Float(0), false);
+    static const inline ValuePtr defaultDouble(new Double(0), false);
+    static const inline ValuePtr defaultLongDouble(new LongDouble(0), false);
+    static const inline ValuePtr defaultString(new String(""), false);
 
 }

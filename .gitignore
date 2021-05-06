@@ -1,4 +1,5 @@
 /build/
+/py_mod/build/
 *.pdb
 *.obj
 *.exe

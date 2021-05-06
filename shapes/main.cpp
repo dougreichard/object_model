@@ -1,5 +1,5 @@
 //#define USE_VISITOR_POLY
-#include "shape.h"
+#include "include/shape.h"
 #include <iostream>
 #include <sstream>
 
