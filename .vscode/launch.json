@@ -27,6 +27,18 @@
             "environment": [],
             "externalConsole": false,
             "preLaunchTask": "Build bench"
+        },
+        {
+            "name": "test",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\build\\tests\\test.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "preLaunchTask": "Build test"
         }
     ]
 }

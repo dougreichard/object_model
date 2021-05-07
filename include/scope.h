@@ -12,7 +12,7 @@ namespace obj
         static inline std::unordered_map<std::string, TSymbol *> symbols;
         void add(const char *name, TSymbol *symbol)
         {
-            Scope::instance().symbols.insert({std::string(name), symbol});
+            Scope::instance().symbols.insert({name, symbol});
         }
         template <typename AddSymbol>
         TSymbol *get_or_create_symbol(const char *name)
@@ -29,14 +29,14 @@ namespace obj
                 return s->second;
             }
         }
-        TSymbol &get(const char *name)
+        TSymbol& get(const char *name)
         {
             auto all = Scope::instance();
             auto s = all.symbols.find(name);
             if (s == all.symbols.end())
             {
                 // Currently construct adds
-                return (TSymbol &)TSymbol::get_undefined();
+                return (TSymbol&)TSymbol::get_undefined();
             }
             else
             {

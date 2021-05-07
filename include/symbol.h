@@ -39,8 +39,7 @@ namespace obj
             Scope<Symbol>::instance().add(name, this);
             if (key == 0 && from == IS_SYSTEM)
             {
-                _key = SYSTEM_SYMBOLS;
-                SYSTEM_SYMBOLS = ++SYSTEM_SYMBOLS;
+                _key = SYSTEM_SYMBOLS++;
                 if (SYSTEM_SYMBOLS > USER_SYMBOLS)
                 {
                     // PANIC The number of symbols overlapped
@@ -48,8 +47,7 @@ namespace obj
                 }
             } else if (key == 0 && from == IS_USER)
             {
-                _key = USER_SYMBOLS;
-                USER_SYMBOLS = USER_SYMBOLS--;
+                _key = USER_SYMBOLS--;
                 if (USER_SYMBOLS < SYSTEM_SYMBOLS)
                 {
                     // PANIC The number of symbols overlapped
