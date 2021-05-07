@@ -8,7 +8,7 @@ using namespace obj;
 typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */
-    Symbol* symbol;
+    Symbol symbol;
 } PySymbol;
 
 
@@ -18,7 +18,7 @@ py_symbol_init(PySymbol *self, PyObject *args, PyObject *kws)
     const char *name;
     if (!PyArg_ParseTuple(args, "s", &name))
          return -1;    
-    Symbol* symbol = Scope<Symbol>::instance().get_or_create_symbol<UserSymbol>(name);
+    Symbol symbol = Scope<Symbol>::instance().get_or_create_symbol<UserSymbol>(name);
     self->symbol = symbol;
     return 0;
 }

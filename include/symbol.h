@@ -17,9 +17,11 @@ namespace obj
     {
         std::string _name;
         uint64_t _key;
+        UnscopedSymbol() : _name("undefined"), _key(0) {}
         UnscopedSymbol(const char *name, uint64_t key) : _name(name), _key(key)
         {
         }
+        UnscopedSymbol(const UnscopedSymbol& rhs) : _name(rhs._name), _key(rhs._key) {}
         operator const uint64_t &() const { return _key; }
         operator const std::string &() const { return _name; }
         static UnscopedSymbol &get_undefined()
@@ -30,13 +32,18 @@ namespace obj
     };
     struct Symbol : UnscopedSymbol
     {
+        Symbol()  : UnscopedSymbol() { }
+        Symbol(const Symbol& rhs)  : UnscopedSymbol(rhs) {
+            _name = rhs._name;
+            _key = rhs._key;
+        }
+        
         Symbol(const char *name, uint64_t key) : UnscopedSymbol(name, key)
         {
-            Scope<Symbol>::instance().add(name, this);
+            Scope<Symbol>::instance().add_or_fix_key(name, *this);
         }
         Symbol(const char *name, uint64_t key, int from) : UnscopedSymbol(name, key)
         {
-            Scope<Symbol>::instance().add(name, this);
             if (key == 0 && from == IS_SYSTEM)
             {
                 _key = SYSTEM_SYMBOLS++;
@@ -54,6 +61,11 @@ namespace obj
                     // this is extremely unlikely, it would take years
                 }
             }
+            Scope<Symbol>::instance().add_or_fix_key(name, *this);
+        }
+        void operator = (const Symbol &rhs ) {
+            _name = rhs._name;
+            _key = rhs._key;
         }
     };
     struct SystemSymbol : Symbol
@@ -64,10 +76,12 @@ namespace obj
     // Symbols for PYTHON scripts?
     struct UserSymbol : Symbol
     {
+        UserSymbol()  : Symbol() { }
+        UserSymbol(const UserSymbol& rhs) : Symbol(rhs) {
+        }
         UserSymbol(const char *name, uint16_t key = 0) : Symbol(name, key, IS_USER)
         {
             
         }
     };
-
 }

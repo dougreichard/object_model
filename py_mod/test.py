@@ -19,6 +19,8 @@ def main():
     print(o.X) # Prints 1234
     ## NEED a better way to add symbols and avoid duplicates
     s = shapes.Symbol("Gromit")
+    s = shapes.Symbol("Gromit")
+    s = shapes.Symbol("Gromit")
     o.Gromit = 12
     o.Gromit = 13
     o.Gromit = 14

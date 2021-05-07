@@ -46,7 +46,14 @@
         "xtr1common": "cpp",
         "xutility": "cpp",
         "sstream": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "algorithm": "cpp",
+        "iomanip": "cpp",
+        "map": "cpp",
+        "regex": "cpp",
+        "set": "cpp",
+        "xlocmon": "cpp",
+        "xtree": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

@@ -9,27 +9,34 @@ namespace obj
     template <typename TSymbol>
     struct Scope
     {
-        static inline std::unordered_map<std::string, TSymbol *> symbols;
-        void add(const char *name, TSymbol *symbol)
+        std::unordered_map<std::string, TSymbol> symbols;
+        void add_or_fix_key(const char *name, TSymbol& symbol)
         {
-            Scope::instance().symbols.insert({name, symbol});
+            // Add the symbol, if it exists, fix the key of the target
+            auto i = Scope::instance().symbols.find( symbol._name );
+            if (i != Scope::instance().symbols.end()) {
+                 symbol._key = i->second._key;
+            } else {
+                 Scope::instance().symbols.emplace(symbol._name,  symbol);
+            }
+            
+            
+            
         }
         template <typename AddSymbol>
-        TSymbol *get_or_create_symbol(const char *name)
+        TSymbol get_or_create_symbol(const char *name)
         {
-            auto all = Scope::instance();
-            auto s = all.symbols.find(name);
-            if (s == all.symbols.end())
+            auto s = symbols.find(name);
+            if (s == symbols.end())
             {
+                TSymbol test = AddSymbol(name); //, 0, IS_USER);
                 // Currently construct adds
-                return new AddSymbol(name);
+                s = symbols.find(name);
             }
-            else
-            {
-                return s->second;
-            }
+            return s->second;
+            
         }
-        TSymbol& get(const char *name)
+        TSymbol get(const char *name)
         {
             auto all = Scope::instance();
             auto s = all.symbols.find(name);
@@ -40,7 +47,7 @@ namespace obj
             }
             else
             {
-                return *s->second;
+                return s->second;
             }
         }
         
