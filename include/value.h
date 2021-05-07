@@ -25,8 +25,10 @@ namespace obj
         // it deletes unowned value there
         inline Value *operator*() { return get(); }
         inline Value *operator->() { return get(); }
-        inline Value *get() { return _ptr; };
-        inline Value &ref() { return *get(); }
+        template <typename TValue = Value>
+        inline TValue *get() { return (TValue *)_ptr; };
+        template <typename TValue = Value>
+        inline TValue &ref() { return (TValue &)*_ptr; }
     };
 
     struct Value

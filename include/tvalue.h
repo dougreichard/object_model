@@ -6,9 +6,12 @@ namespace obj {
     template <typename T, const Symbol &name>
     struct TValue : Value
     {
-        TValue() : Value(name) {}
+        typedef T value_type;
+        TValue() : Value(name), _value (T()) {}
         TValue(const T &value) : Value(name), _value(value) {}
+        TValue(const TValue &rhs) : Value(rhs._type), _value(rhs._value) {}
         T _value;
+//        static const inline TValue default_value = T(0);
         inline operator const T &() const { return _value; }
         inline operator T &() { return _value; }
         inline TValue &operator=(const TValue &value)
@@ -21,6 +24,7 @@ namespace obj {
             _value = value;
             return *this;
         }
+     
         virtual std::shared_ptr<Value> make_shared()
         {
             return std::shared_ptr<Value>(new TValue(*this));
@@ -29,7 +33,7 @@ namespace obj {
         {
             return ValuePtr(new TValue(*this), false);
         }
-        MAKE_VISITABLE(TValue, Value)
+        //MAKE_VISITABLE(TValue, Value)
     };
 
 }

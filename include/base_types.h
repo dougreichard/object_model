@@ -17,7 +17,6 @@ namespace obj
     static const inline uint64_t VALUE_AS_SYMBOL = 10;
     static const inline uint64_t LAST_BASE_SYMBOL = 10;
 
-    
     static const inline Symbol undefined_type("undefined", UNDEFINED_SYMBOL);
     static const inline Symbol object_type("Object", OBJECT_SYMBOL);
     static const inline Symbol array_type("Array", ARRAY_SYMBOL);
@@ -45,10 +44,20 @@ namespace obj
     typedef TValue<double, double_type> Double;
     typedef TValue<long double, long_double_type> LongDouble;
     
-
     typedef TValue<std::string, string_type> String;
     typedef TValue<Symbol, symbolic_type> Symbolic;
-
+    inline bool operator== (const String &c1, const char* c2)
+    {
+        return (c1._value == c2);
+    }
+    inline bool operator== ( const char* c2, const String &c1)
+    {
+        return (c1._value == c2);
+    }
+    inline bool operator== (const String &c1, const String& c2)
+    {
+        return (c1._value == c2._value);
+    }
 
     struct UndefinedValue : Value
     {
@@ -69,13 +78,13 @@ namespace obj
 
 
 
-    // This may be a memory leak
-    static const inline ValuePtr defaultInt(new Int(0), false);
-    static const inline ValuePtr defaultInt32(new Int32(0),false);
-    static const inline ValuePtr defaultInt64(new Int64(0), false);
-    static const inline ValuePtr defaultFloat(new Float(0), false);
-    static const inline ValuePtr defaultDouble(new Double(0), false);
-    static const inline ValuePtr defaultLongDouble(new LongDouble(0), false);
-    static const inline ValuePtr defaultString(new String(""), false);
+    // // This may be a memory leak
+    static const inline std::shared_ptr<Value> defaultInt(Int(0).make_shared());
+    static const inline std::shared_ptr<Value> defaultInt32(Int32(0).make_shared());
+    static const inline std::shared_ptr<Value> defaultInt64( Int64(0).make_shared());
+    static const inline std::shared_ptr<Value> defaultFloat( Float(0).make_shared());
+    static const inline std::shared_ptr<Value> defaultDouble( Double(0).make_shared());
+    static const inline std::shared_ptr<Value> defaultLongDouble( LongDouble(0).make_shared());
+    static const inline std::shared_ptr<Value> defaultString( String("").make_shared());
 
 }

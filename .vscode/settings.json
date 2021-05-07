@@ -53,7 +53,8 @@
         "regex": "cpp",
         "set": "cpp",
         "xlocmon": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "*.rh": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

@@ -19,6 +19,9 @@ namespace obj
     // Metadata information
     struct Metadata
     {
+        Metadata(std::initializer_list<Property> p) : props(p) {
+            
+        }
         std::vector<Property> props;
     };
 }

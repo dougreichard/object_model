@@ -50,7 +50,7 @@ namespace obj
         {
             init();
         }
-        Object(const Metadata &meta) : Value(object_type)
+        Object(const Metadata &meta, const Symbol &type=object_type) : Value(type)
         {
             init();
             from_metadata(meta);
@@ -65,9 +65,9 @@ namespace obj
             for (auto p : meta.props)
             {
                 if (p.owned)
-                    set_owned(p.name, p.value.ref());
+                    set_owned(p.name, *p.value);
                 else
-                    set(p.name, p.value.ref());
+                    set(p.name, *p.value);
             }
         }
         // Copy constructor all copies share the same key/values
@@ -99,7 +99,8 @@ namespace obj
 
         // Map emplace is really slow
         // This make sure it only does this when appropriate
-        inline Object &set(const Symbol &key, Value &value)
+        template <typename TValue = Value>
+        inline Object &set(const Symbol &key, TValue &value)
         {
             Value &v = get(key);
             if (v._type._key != value._type._key)
@@ -131,14 +132,15 @@ namespace obj
             return *this;
         }
 
-        inline Value &get(const Symbol &key)
+        template <typename TValue = Value>
+        inline TValue &get(const Symbol &key)
         {
             KeyValues::iterator v = _kv->find(key);
             if (v == _kv->end())
             {
-                return UndefinedValue::get();
+                return (TValue&)UndefinedValue::get();
             }
-            return v->second.ref();
+            return (TValue&)v->second.ref();
         }
         inline Object &remove(const Symbol &key)
         {
@@ -173,7 +175,12 @@ namespace obj
         }
         virtual ValuePtr clone()
         {
-            return ValuePtr(new Object(*this), false);
+            Object* clone = new Object(this->_type);
+            for(auto [k,v] : *_kv) {
+                clone->set(k,v.ref());
+            }
+
+            return ValuePtr(clone, false);
         }
 
         // These are virtual/poly morphic, but slower then the inlines
