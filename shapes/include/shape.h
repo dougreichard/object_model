@@ -87,13 +87,9 @@ struct Circle : Object
         }
         return *this;
     }
-    virtual std::shared_ptr<Value> make_shared()
+    virtual Value* clone()
     {
-        return std::shared_ptr<Value>(new Circle(_x, _y, _r));
-    }
-    virtual ValuePtr clone()
-    {
-        return ValuePtr(new Circle(_x, _y, _r), false);
+        return (Value*) new Circle(_x, _y, _r);
     }
 
     inline Int &px() { return (Int &)get(Prop::X); }
@@ -128,9 +124,9 @@ struct DynCircle : Object
     int &x() { return (Int &)get(Prop::X); }
     int &y() { return (Int &)get(Prop::Y); }
     int &r() { return (Int &)get(Prop::R); }
-    virtual ValuePtr clone()
+    virtual Value* clone()
     {
-        return ValuePtr(new DynCircle(*this), false);
+        return new DynCircle(*this);
     }
 };
 
@@ -163,9 +159,9 @@ struct Rect : Object
     int &y() { return (Int &)get(Prop::Y); }
     int &w() { return (Int &)get(Prop::W); }
     int &h() { return (Int &)get(Prop::H); }
-    virtual ValuePtr clone()
+    virtual Value* clone()
     {
-        return ValuePtr(new Rect(*this), false);
+        return new Rect(*this);
     }
 };
 

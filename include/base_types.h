@@ -66,25 +66,21 @@ namespace obj
             static UndefinedValue  instance;
             return instance;    
         }
-        virtual std::shared_ptr<Value> make_shared()
+        // virtual std::shared_ptr<Value> make_shared()
+        // {
+        //     return std::shared_ptr<Value>(&UndefinedValue::get());
+        // }
+        virtual Value* clone()
         {
-            return std::shared_ptr<Value>(&UndefinedValue::get());
-        }
-        virtual ValuePtr clone()
-        {
-            return ValuePtr(&UndefinedValue::get(), false);
+            return &UndefinedValue::get();
         }
     };
 
-
-
-    // // This may be a memory leak
-    static const inline std::shared_ptr<Value> defaultInt(Int(0).make_shared());
-    static const inline std::shared_ptr<Value> defaultInt32(Int32(0).make_shared());
-    static const inline std::shared_ptr<Value> defaultInt64( Int64(0).make_shared());
-    static const inline std::shared_ptr<Value> defaultFloat( Float(0).make_shared());
-    static const inline std::shared_ptr<Value> defaultDouble( Double(0).make_shared());
-    static const inline std::shared_ptr<Value> defaultLongDouble( LongDouble(0).make_shared());
-    static const inline std::shared_ptr<Value> defaultString( String("").make_shared());
-
+    static const inline ValuePtr defaultInt(new Int(0), true);
+    static const inline ValuePtr defaultInt32(new Int32(0), true);
+    static const inline ValuePtr defaultInt64(new Int64(0), true);
+    static const inline ValuePtr defaultFloat(new Float(0), true);
+    static const inline ValuePtr defaultDouble(new Double(0), true);
+    static const inline ValuePtr defaultLongDouble(new LongDouble(0), true);
+    static const inline ValuePtr defaultString(new String(""), true);
 }

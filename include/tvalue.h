@@ -25,15 +25,18 @@ namespace obj {
             return *this;
         }
      
-        virtual std::shared_ptr<Value> make_shared()
+        // virtual std::shared_ptr<Value> make_shared()
+        // {
+        //     return std::shared_ptr<Value>(new TValue(*this));
+        // }
+        virtual Value* clone()
         {
-            return std::shared_ptr<Value>(new TValue(*this));
-        }
-        virtual ValuePtr clone()
-        {
-            return ValuePtr(new TValue(*this), false);
+            return new TValue(*this);
         }
         //MAKE_VISITABLE(TValue, Value)
     };
 
+    
+
 }
+

@@ -27,13 +27,13 @@ TEST_CASE( "Metadata", "[metadata]" ) {
         {Prop::H, int_type, defaultInt, false},
     }};
 
-     const Metadata min_metadata {
-    {
-        {Prop::X, int_type, Int(4).make_shared(), false},
-        {Prop::Y, int_type, defaultInt, false},
-        {Prop::W, int_type, defaultInt, false},
-        {Prop::H, int_type, defaultInt, false},
-    }};
+    //  const Metadata min_metadata {
+    // {
+    //     {Prop::X, int_type, Int(4).make_shared(), false},
+    //     {Prop::Y, int_type, defaultInt, false},
+    //     {Prop::W, int_type, defaultInt, false},
+    //     {Prop::H, int_type, defaultInt, false},
+    // }};
 
     SECTION( "Symbols get name and key" ) {
         REQUIRE( min_metadata.props.size() == 4);

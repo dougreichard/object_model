@@ -23,28 +23,25 @@ namespace obj {
         }
         ~Array()
         {
-            if (_vec.use_count() < 2)
-            {
-                for (auto i = _vec->begin(); i != _vec->end(); i++)
-                {
-                    if (!i->_owned)
-                    {
-                        delete i->_ptr;
-                    }
-                }
-            }
+            // if (_vec.use_count() < 2)
+            // {
+            //     for (auto i = _vec->begin(); i != _vec->end(); i++)
+            //     {
+            //         if (!i->_object_owned)
+            //         {
+            //             delete i->_ptr;
+            //         }
+            //     }
+            // }
         }
-        virtual std::shared_ptr<Value> make_shared()
+        
+        virtual Value* clone()
         {
-            return std::shared_ptr<Value>(new Array(*this));
-        }
-        virtual ValuePtr clone()
-        {
-            return ValuePtr(new Array(*this), false);
+            return new Array(*this);
         }
         Array &push(Value &v)
         {
-            _vec->push_back(v.clone());
+            _vec->push_back(ValuePtr(v.clone(), false));
             return *this;
         }
         inline Value &operator[](size_t idx)

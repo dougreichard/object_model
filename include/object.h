@@ -17,14 +17,14 @@ namespace std
             return std::hash<std::size_t>{}(s._key);
         }
     };
-    template <>
-    struct hash<obj::ValuePtr>
-    {
-        std::size_t operator()(obj::ValuePtr const &s) const noexcept
-        {
-            return std::hash<size_t>{}((size_t)s._ptr);
-        }
-    };
+    // template <>
+    // struct hash<obj::ValuePtr>
+    // {
+    //     std::size_t operator()(obj::ValuePtr const &s) const noexcept
+    //     {
+    //         return std::hash<size_t>{}((size_t)s._ptr);
+    //     }
+    // };
 }
 
 #define MAKE_OBJECT_POLY(T)                                                                     \
@@ -65,9 +65,9 @@ namespace obj
             for (auto p : meta.props)
             {
                 if (p.owned)
-                    set_owned(p.name, *p.value);
+                    set_owned(p.name, p.value.ref());
                 else
-                    set(p.name, *p.value);
+                    set(p.name, p.value.ref());
             }
         }
         // Copy constructor all copies share the same key/values
@@ -83,17 +83,17 @@ namespace obj
             {
                 for (auto i = _kv->begin(); i != _kv->end(); i++)
                 {
-                    if (!i->second._owned)
-                    {
-                        delete i->second._ptr;
-                    }
+                    // if (!i->second._object_owned)
+                    // {
+                    //     delete i->second._ptr;
+                    // }
                 }
             }
         }
 
         inline Object &set_owned(const Symbol &key, Value &value)
         {
-            _kv->insert_or_assign(key, ValuePtr(&value, true));
+          //  _kv->insert_or_assign(key, ValuePtr(&value, true));
             return *this;
         }
 
@@ -105,7 +105,7 @@ namespace obj
             Value &v = get(key);
             if (v._type._key != value._type._key)
             {
-                _kv->insert_or_assign(key, value.clone());
+                _kv->insert_or_assign(key, ValuePtr(value.clone(), false));
             }
             else if (v._type._key == INT_SYMBOL)
             {
@@ -126,7 +126,7 @@ namespace obj
             else
             {
                 // Objects and array should clone
-                _kv->insert_or_assign(key, value.clone());
+                _kv->insert_or_assign(key, ValuePtr(value.clone(), false));
             }
 
             return *this;
@@ -146,8 +146,8 @@ namespace obj
         {
             auto i = _kv->find(key);
             ValuePtr v = i->second;
-            if (!v._owned)
-                delete v._ptr;
+          //  if (!v._object_owned)
+          //      delete v._ptr;
             _kv->erase(key);
 
             return *this;
@@ -169,18 +169,18 @@ namespace obj
         {
             return _kw->find(role) != _kw->end();
         }
-        virtual std::shared_ptr<Value> make_shared()
-        {
-            return std::shared_ptr<Value>(new Object(*this));
-        }
-        virtual ValuePtr clone()
+        // virtual std::shared_ptr<Value> make_shared()
+        // {
+        //     return std::shared_ptr<Value>(new Object(*this));
+        // }
+        virtual Value* clone()
         {
             Object* clone = new Object(this->_type);
             for(auto [k,v] : *_kv) {
                 clone->set(k,v.ref());
             }
 
-            return ValuePtr(clone, false);
+            return clone;
         }
 
         // These are virtual/poly morphic, but slower then the inlines

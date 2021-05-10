@@ -22,17 +22,17 @@ struct DynCircle : Object
     DynCircle(const Metadata &meta = DynCircle::metadata) : Object(metadata)
     {
     }
-    virtual ValuePtr clone()
+    virtual Value* clone()
     {
-        return ValuePtr(new DynCircle(*this), false);
+        return new DynCircle(*this);
     }
 };
 const Metadata &min_metadata{
     {
-        {Prop::X, int_type, Int(1).make_shared(), false},
-        {Prop::Y, int_type, Int(2).make_shared(), false},
-        {Prop::W, int_type, Int(3).make_shared(), false},
-        {Prop::H, int_type, Int(4).make_shared(), false},
+        {Prop::X, int_type, ValuePtr(new Int(1), false), false},
+        {Prop::Y, int_type, ValuePtr(new Int(2), false), false},
+        {Prop::W, int_type, ValuePtr(new Int(3), false), false},
+        {Prop::H, int_type, ValuePtr(new Int(4), false), false},
     }};
 
 using namespace obj;
@@ -134,7 +134,7 @@ TEST_CASE("Object clone object ", "[object]")
     REQUIRE(obj.get<Int &>(Prop::H) == 400);
     
 
-    ValuePtr clone = obj.clone();
+    ValuePtr clone = ValuePtr(obj.clone(), false);
     Object& ref = clone.ref<Object>();
 
     REQUIRE(ref.get<Int &>(Prop::X) == 100);
@@ -156,4 +156,79 @@ TEST_CASE("Object clone object ", "[object]")
     REQUIRE(obj.get<Int &>(Prop::Y) == 200);
     REQUIRE(obj.get<Int &>(Prop::W) == 300);
     REQUIRE(obj.get<Int &>(Prop::H) == 400);
+}
+
+static inline SystemSymbol circle_type("Circle");
+struct Circle : Object
+{
+    MAKE_VISITABLE(Circle, Object)
+    MAKE_OBJECT_POLY(Circle)
+    static const Metadata& metadata;
+    Circle(const Circle &rhs) : Object(rhs)
+    {
+        _x = rhs._x;
+        _y = rhs._y;
+        _r = rhs._r;
+    }
+    Circle(const Metadata& meta = Circle::metadata) : Object(metadata) {
+    }
+    Circle(int x, int y, int r) : Object(circle_type)
+    {
+        _x = x;
+        _y = y;
+        _r = r;
+    }
+    Int _x;
+    Int _y;
+    Int _r;
+    inline Value &get(const Symbol &key)
+    {
+        if (key == Prop::X)
+        {
+            return _x;
+        }
+        else if (key == Prop::Y)
+        {
+            return _y;
+        }
+        else if (key == Prop::R)
+        {
+            return _r;
+        }
+        return Object::get(key);
+    }
+    inline Object &set(const Symbol &key, Value &value)
+    {
+        if (key == Prop::X)
+        {
+            _x = (Int &)value;
+        }
+        else if (key == Prop::Y)
+        {
+            _y = (Int &)value;
+        }
+        else if (key == Prop::R)
+        {
+            _r = (Int &)value;
+        }
+        else
+        {
+            return Object::set(key, value);
+        }
+        return *this;
+    }
+    virtual Value* clone()
+    {
+        return (Value*) new Circle(_x, _y, _r);
+    }
+};
+const Metadata& Circle::metadata{{
+    {Prop::X, int_type, defaultInt, true},
+    {Prop::Y, int_type, defaultInt, true},
+    {Prop::R, int_type, defaultInt, true},
+}};
+
+TEST_CASE("Hybird Object", "[object]")
+{
+
 }

@@ -59,11 +59,11 @@ TEMPLATE_TEST_CASE("Common Base type clone tests ", "[base_types][template]",
     Int, Int32, Int64, Float, Double, LongDouble)
 {
     TestType def(89);
-    ValuePtr p = def.clone();
-    TestType& get = *((TestType*)p.get());
+    ValuePtr p(def.clone(), false);
+  //  TestType& get = *((TestType*)p.get());
     TestType& ref = ((TestType&)p.ref());
 
-    TestType* tget = p.get<TestType>();
+   // TestType* tget = p.get<TestType>();
     TestType& tref = p.ref<TestType>();
 
     SECTION("clone deref operator")
@@ -71,8 +71,8 @@ TEMPLATE_TEST_CASE("Common Base type clone tests ", "[base_types][template]",
         
         REQUIRE(def == 89);
         REQUIRE(ref == 89);
-        REQUIRE(get == 89);
-        REQUIRE(*tget == 89);
+    //    REQUIRE(get == 89);
+    //    REQUIRE(*tget == 89);
         REQUIRE(tref == 89);
     }
 
