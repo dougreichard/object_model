@@ -5,14 +5,13 @@
 
 using namespace obj;
 
-namespace Enum
-{
-// Symbol can be used as a string
-// or as an uint16_t
-    static const inline PropertySymbol EMP("EMP");
-    static const inline PropertySymbol ATTRACT("Attract");
-    static const inline PropertySymbol PSHOCK("PShock");
-}; // namespace ES
+struct Torps : Enum<Torps> {
+    static inline const VP Torp{"Torp",Int(0)};
+    static inline const VP Emp{"Emp",Int(0x2)};
+    static inline const VP PShock{"PShock",Int(0x4)};
+
+};
+ 
 
 // TEST_CASE( "Enum", "[enum]" ) {
 //     const SystemSymbol MinEnum("Torpedo");

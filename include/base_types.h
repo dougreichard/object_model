@@ -58,29 +58,36 @@ namespace obj
     {
         return (c1._value == c2._value);
     }
-
-    struct UndefinedValue : Value
+    inline bool operator== (const Symbol &c1, const Symbol& c2)
     {
-        UndefinedValue() : Value(undefined_type) {}
-        static UndefinedValue & get() {
-            static UndefinedValue  instance;
-            return instance;    
-        }
-        // virtual std::shared_ptr<Value> make_shared()
-        // {
-        //     return std::shared_ptr<Value>(&UndefinedValue::get());
-        // }
-        virtual Value* clone()
-        {
-            return &UndefinedValue::get();
-        }
-    };
+        return (c1._key == c2._key);
+    }
 
-    static const inline ValuePtr defaultInt(new Int(0), true);
-    static const inline ValuePtr defaultInt32(new Int32(0), true);
-    static const inline ValuePtr defaultInt64(new Int64(0), true);
-    static const inline ValuePtr defaultFloat(new Float(0), true);
-    static const inline ValuePtr defaultDouble(new Double(0), true);
-    static const inline ValuePtr defaultLongDouble(new LongDouble(0), true);
-    static const inline ValuePtr defaultString(new String(""), true);
+    // struct UndefinedValue : Value
+    // {
+    //     UndefinedValue() : Value(undefined_type) {}
+    //     UndefinedValue(UndefinedValue& )  : Value(undefined_type) {}
+    //     static UndefinedValue & get() {
+    //         static UndefinedValue  instance;
+    //         return instance;    
+    //     }
+    //     virtual Value* clone()
+    //     {
+    //         return new UndefinedValue();
+    //     }
+    // };
+
+    // inline bool operator== (const UndefinedValue &c1, const UndefinedValue& c2)
+    // {
+    //     return (c1._type == c2._type)&& c1._type==undefined_type;
+    // }   
+
+    static const inline ValuePtr defaultInt(new Int(0));
+    static const inline ValuePtr defaultInt32(new Int32(0));
+    static const inline ValuePtr defaultInt64(new Int64(0));
+    static const inline ValuePtr defaultFloat(new Float(0));
+    static const inline ValuePtr defaultDouble(new Double(0));
+    static const inline ValuePtr defaultLongDouble(new LongDouble(0));
+    static const inline ValuePtr defaultString(new String(""));
+    static const inline ValuePtr Undefined(new Symbolic(undefined_type));
 }
