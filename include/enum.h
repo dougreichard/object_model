@@ -1,27 +1,21 @@
 #pragma once
 
-#include <vector>
+#include <unordered_map>
 #include "symbol.h"
 #include "value.h"
 
 namespace obj
 {
-    // This is for defining metadata
-    // a list of properties for a class
-    struct EnumConst
+    template <typename Host>
+    struct Enum
     {
-        const Symbol &name;
-        ValuePtr value;
+        struct VP { 
+            ValuePtr value; 
+            VP(const char* name, Value& v ) : value(v.clone()) {
+                UserSymbol s(name);
+                Host::values.insert(std::make_pair((Symbol)s,value));
+            }
+        };
+        static inline std::unordered_map<Symbol, ValuePtr> values;
     };
-
-    // Metadata information
-    struct EnumSet
-    {
-        EnumSet(std::initializer_list<EnumConst> p) : props(p) {
-            
-        }
-        std::vector<EnumConst> props;
-    };
-
-    
 }

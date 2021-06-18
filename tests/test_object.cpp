@@ -29,10 +29,10 @@ struct DynCircle : Object
 };
 const Metadata &min_metadata{
     {
-        {Prop::X, int_type, ValuePtr(new Int(1), false), false},
-        {Prop::Y, int_type, ValuePtr(new Int(2), false), false},
-        {Prop::W, int_type, ValuePtr(new Int(3), false), false},
-        {Prop::H, int_type, ValuePtr(new Int(4), false), false},
+        {Prop::X, int_type, ValuePtr(new Int(1)), false},
+        {Prop::Y, int_type, ValuePtr(new Int(2)), false},
+        {Prop::W, int_type, ValuePtr(new Int(3)), false},
+        {Prop::H, int_type, ValuePtr(new Int(4)), false},
     }};
 
 using namespace obj;
@@ -134,7 +134,7 @@ TEST_CASE("Object clone object ", "[object]")
     REQUIRE(obj.get<Int &>(Prop::H) == 400);
     
 
-    ValuePtr clone = ValuePtr(obj.clone(), false);
+    ValuePtr clone = ValuePtr(obj.clone());
     Object& ref = clone.ref<Object>();
 
     REQUIRE(ref.get<Int &>(Prop::X) == 100);

@@ -41,7 +41,7 @@ namespace obj {
         }
         Array &push(Value &v)
         {
-            _vec->push_back(ValuePtr(v.clone(), false));
+            _vec->push_back(ValuePtr(v.clone()));
             return *this;
         }
         inline Value &operator[](size_t idx)

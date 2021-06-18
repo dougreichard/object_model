@@ -59,7 +59,7 @@ TEMPLATE_TEST_CASE("Common Base type clone tests ", "[base_types][template]",
     Int, Int32, Int64, Float, Double, LongDouble)
 {
     TestType def(89);
-    ValuePtr p(def.clone(), false);
+    ValuePtr p(def.clone());
   //  TestType& get = *((TestType*)p.get());
     TestType& ref = ((TestType&)p.ref());
 

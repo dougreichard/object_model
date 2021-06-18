@@ -67,6 +67,10 @@ namespace obj
             _name = rhs._name;
             _key = rhs._key;
         }
+        bool operator == (const Symbol &rhs ) {
+            //_name = rhs._name;
+            return _key == rhs._key;
+        }
     };
     struct SystemSymbol : Symbol
     {
@@ -82,6 +86,19 @@ namespace obj
         UserSymbol(const char *name, uint16_t key = 0) : Symbol(name, key, IS_USER)
         {
             
+        }
+    };
+}
+
+
+namespace std
+{
+    template <>
+    struct hash<obj::Symbol>
+    {
+        std::size_t operator()(obj::Symbol const &s) const noexcept
+        {
+            return std::hash<std::size_t>{}(s._key);
         }
     };
 }

@@ -7,25 +7,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace std
-{
-    template <>
-    struct hash<obj::Symbol>
-    {
-        std::size_t operator()(obj::Symbol const &s) const noexcept
-        {
-            return std::hash<std::size_t>{}(s._key);
-        }
-    };
-    // template <>
-    // struct hash<obj::ValuePtr>
-    // {
-    //     std::size_t operator()(obj::ValuePtr const &s) const noexcept
-    //     {
-    //         return std::hash<size_t>{}((size_t)s._ptr);
-    //     }
-    // };
-}
 
 #define MAKE_OBJECT_POLY(T)                                                                     \
     virtual Object &poly_set(const Symbol &key, Value &value) { return this->set(key, value); } \
@@ -105,7 +86,7 @@ namespace obj
             Value &v = get(key);
             if (v._type._key != value._type._key)
             {
-                _kv->insert_or_assign(key, ValuePtr(value.clone(), false));
+                _kv->insert_or_assign(key, ValuePtr(value.clone()));
             }
             else if (v._type._key == INT_SYMBOL)
             {
@@ -126,7 +107,7 @@ namespace obj
             else
             {
                 // Objects and array should clone
-                _kv->insert_or_assign(key, ValuePtr(value.clone(), false));
+                _kv->insert_or_assign(key, ValuePtr(value.clone()));
             }
 
             return *this;
@@ -138,7 +119,7 @@ namespace obj
             KeyValues::iterator v = _kv->find(key);
             if (v == _kv->end())
             {
-                return (TValue&)UndefinedValue::get();
+                return (TValue&)Undefined;
             }
             return (TValue&)v->second.ref();
         }
