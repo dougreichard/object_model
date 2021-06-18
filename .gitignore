@@ -1,7 +1,16 @@
+/extern/
 /build/
-/py_mod/build/
+/py/py_mod/build/
+/py/pb_mod/build/
+/py/pb_emb/art/
+/py/py_full/
+/py/py_emb/
 *.pdb
 *.obj
 *.exe
 *.pyd
+
+py/build/python3.dll
+py/build/python39.dll
+py/pb_emb/missions/first/__pycache__/
 

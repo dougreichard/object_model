@@ -1,0 +1,26 @@
+
+Running F:\c\gh\object_model\py\build\..\pb_emb\missions\first\script.py...
+stdout:
+Script start 
+Artemis is at X: 3 Y: 5 Z: 7
+Script tick 
+Artemis is at X: 23 Y: 35 Z: 47
+Script tick 
+Artemis is at X: 43 Y: 65 Z: 87
+Script tick 
+Artemis is at X: 63 Y: 95 Z: 127
+Script tick 
+Artemis is at X: 83 Y: 125 Z: 167
+Script tick 
+Artemis is at X: 103 Y: 155 Z: 207
+Script tick 
+Artemis is at X: 123 Y: 185 Z: 247
+Script tick 
+Artemis is at X: 143 Y: 215 Z: 287
+Script tick 
+Artemis is at X: 163 Y: 245 Z: 327
+Script tick 
+Artemis is at X: 183 Y: 275 Z: 367
+Script tick 
+Artemis is at X: 203 Y: 305 Z: 407
+stderr:
