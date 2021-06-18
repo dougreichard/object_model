@@ -1,4 +1,10 @@
 
+> visitor@1.0.0 run:pa F:\c\gh\object_model
+> copy .\py\py_emb\python*.dll .\py\build &&cd py\build&&arty.exe
+
+.\py\py_emb\python3.dll
+.\py\py_emb\python39.dll
+        2 file(s) copied.
 Running F:\c\gh\object_model\py\build\..\pb_emb\missions\first\script.py...
 stdout:
 Script start 

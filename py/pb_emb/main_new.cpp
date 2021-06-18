@@ -140,7 +140,7 @@ private:
 
 
 
-PYBIND11_EMBEDDED_MODULE(artemis, m)
+PYBIND11_EMBEDDED_MODULE(sbs, m)
 {
     // Using the glm module stuff
     py::module_::import("glm");
@@ -228,7 +228,7 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
 
     auto glm = py::module::import("glm");
     auto pax = py::module::import("pax");
-    auto artemis = py::module::import("artemis");
+    auto artemis = py::module::import("sbs");
 
     /// The debugger looks for the file name in the sys.argv[0]
     auto sys = py::module::import("sys");

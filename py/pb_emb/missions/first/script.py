@@ -1,11 +1,11 @@
 import glm
-import artemis
+import sbs
 
 #help(glm)
 #help(artemis)
 
 player = 0
-sim = artemis.get_simulation()
+sim = sbs.get_simulation()
 
 def  HandleScriptStart():
     global player
