@@ -270,6 +270,7 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     {
         //py::eval_file(script, scope);
         this->script = py::module::import("script");
+
         this->StartMission();
         // Run for 10 ticks
         for(int i=0;i < 10;i++)
@@ -296,7 +297,10 @@ void MissionScript::StartMission(void)
 {
     try {
         py::object result = script.attr("HandleScriptStart");
-        result();
+        py::object sim = py::cast(&Simulation::instance(),py::return_value_policy::reference);
+        result(sim);
+        //Not sure why they'd delete but...
+        Simulation::instance().recycle();
     }
     catch (py::error_already_set &e)
     {
@@ -318,7 +322,8 @@ void MissionScript::TickMission(void)
     try
     {
         py::object result = script.attr("HandleScriptTick");
-        result();
+        py::object sim = py::cast(&Simulation::instance(),py::return_value_policy::reference);
+        result(sim);
         Simulation::instance().recycle();
     }
     catch (py::error_already_set &e)

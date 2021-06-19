@@ -5,12 +5,10 @@ import sbs
 #help(artemis)
 
 player = 0
-sim = sbs.get_simulation()
+#sim = sbs.get_simulation()
 
-def  HandleScriptStart():
+def  HandleScriptStart(sim):
     global player
-    global sim
-
     print("Script start ")
     player = sim.add_player("tsn", "artemis")
     artemis = sim.get_space_object(player)
@@ -19,9 +17,8 @@ def  HandleScriptStart():
 
 
 
-def HandleScriptTick():
+def HandleScriptTick(sim):
     global player
-    global sim
     
     print("Script tick ")
     art = sim.get_space_object(player)
