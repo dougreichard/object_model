@@ -8,6 +8,7 @@ player = 0
 #sim = sbs.get_simulation()
 def  HandleScriptStart(sim):
     global player
+    v = glm.vec3(0.0, 0.0, 0.0)
     print("Script start second")
     # player = sim.add_player("tsn", "artemis")
 # artemis = sim.get_space_object(player)

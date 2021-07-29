@@ -167,9 +167,7 @@ PYBIND11_EMBEDDED_MODULE(sbs, m)
 class MissionScript
 {
     std::ofstream log;
-    std::unique_ptr<py::scoped_interpreter> context;
     py::object script;
-    py::object scope;
 
 public:
     MissionScript()
@@ -196,13 +194,18 @@ int main(int argc, char *argv[])
     bool remote = (argc >= 2 && argv[1][0] == 'r');
     bool pdb = (argc >= 2 && argv[1][0] == 'd');
     MissionScript m;
-    m.Setup(basedir, "first", remote, pdb);
+    ///////////////////////////////
+    // Run two different scripts multiple times
     for(int i =0; i<5;i++) {
         if (i%2) {
+            m.Setup(basedir, "first", remote, pdb);
             m.Run(basedir,"first");
+            m.Shutdown();
         }
         else { 
+            m.Setup(basedir, "second", remote, pdb);
             m.Run(basedir,"second");
+            m.Shutdown();
         }
     }
     
@@ -213,6 +216,7 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
 {
     
     this->log.open("log.txt");
+
     std::wstring wdir = fs::path(basedir).wstring();
     // Path to python
     std::wstring python = wdir + L"\\..\\py_emb";
@@ -236,12 +240,8 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     // Set the ths python root path
     Py_SetPath(pypath.c_str());
 
-    // Let the python begin
-    this->context = std::make_unique<py::scoped_interpreter>(py::scoped_interpreter());
-
-    auto glm = py::module::import("glm");
-    auto pax = py::module::import("pax");
-    auto artemis = py::module::import("sbs");
+    py::initialize_interpreter();
+    pybind11::detail::get_internals();
 
     // /// The debugger looks for the file name in the sys.argv[0]
     // auto sys = py::module::import("sys");
@@ -277,33 +277,11 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     // }
  
 }
-void MissionScript::Run(std::string basedir, std::string missionFolderName){
-    std::wstring wdir = fs::path(basedir).wstring();
-    // Path to python
-    std::wstring python = wdir + L"\\..\\py_emb";
-    // string
-    std::string dir = fs::path(basedir).string();
-    std::string script = dir + "\\..\\pb_emb\\missions\\" + missionFolderName + "\\script.py";
-    // Why is there not a standard sting<>wstring??
-    // But one can cheat this way
-    std::wstring wMissionDir = fs::path(script).parent_path().wstring();
-    //    std::string _python = _dir; // + "\\..\\py\\py_emb";
-    this->log << "Script: " << script;
-    // Build PyPath to the embedded zip file
-    // Point to python dir and the python zip
-    // putting mission dir first
-    std::wstring pypath =   wMissionDir + L";" + python + L"\\python39.zip;" + python;
-    this->log << "\nPython Path: " << fs::path(pypath).string();
-    ;
-    // Sets the class path, maybe add debugger?
-    // if (remoteDebug) pypath = pypath+";" + dir + L"..\\debugpy"
-    Py_SetPythonHome(python.c_str());
-    // Set the ths python root path
-    py::finalize_interpreter();
-    Py_SetPath(pypath.c_str());
-    py::initialize_interpreter();
-    pybind11::detail::get_internals();
 
+
+
+void MissionScript::Run(std::string basedir, std::string missionFolderName){
+ 
     printf("Running %s...\n", missionFolderName.c_str());
     PyStdErrOutStreamRedirect output;
     try
@@ -326,7 +304,6 @@ void MissionScript::Run(std::string basedir, std::string missionFolderName){
             //_sleep(2000);
             // PyGILState_Release(gstate);
         }
-        //Py_EndInterpreter(script_inter);
         printf("Finished %s...\n", missionFolderName.c_str());
         //PyGILState_Release(gstate);
 
@@ -346,6 +323,12 @@ void MissionScript::Run(std::string basedir, std::string missionFolderName){
 
 void MissionScript::Shutdown()
 {
+    // Release memory of script module
+    this->script.release();
+    // SubInterpreter
+    //Py_EndInterpreter(script_inter);
+    // Teardown interpreter
+    py::finalize_interpreter();
 }
 
 void MissionScript::StartMission(void)
