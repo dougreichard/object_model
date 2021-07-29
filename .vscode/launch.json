@@ -17,6 +17,17 @@
             "preLaunchTask": "Build main"
         },
         {
+            "name": "arty",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\py\\build\\arty.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}\\py\\build",
+            "environment": [],
+            "externalConsole": false
+        },
+        {
             "name": "bench",
             "type": "cppvsdbg",
             "request": "launch",

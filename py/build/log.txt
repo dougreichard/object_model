@@ -1,2 +1,7 @@
 Script: F:\c\gh\object_model\py\build\..\pb_emb\missions\first\script.py
-Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\first;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_emb
+Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\first;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_embScript: F:\c\gh\object_model\py\build\..\pb_emb\missions\second\script.py
+Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\second;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_embScript: F:\c\gh\object_model\py\build\..\pb_emb\missions\first\script.py
+Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\first;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_embScript: F:\c\gh\object_model\py\build\..\pb_emb\missions\second\script.py
+Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\second;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_embScript: F:\c\gh\object_model\py\build\..\pb_emb\missions\first\script.py
+Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\first;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_embScript: F:\c\gh\object_model\py\build\..\pb_emb\missions\second\script.py
+Python Path: F:\c\gh\object_model\py\build\..\pb_emb\missions\second;F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_emb

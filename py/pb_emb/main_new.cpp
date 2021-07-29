@@ -166,14 +166,18 @@ PYBIND11_EMBEDDED_MODULE(sbs, m)
 
 class MissionScript
 {
+    std::ofstream log;
     std::unique_ptr<py::scoped_interpreter> context;
-    py::module script;
+    py::object script;
+    py::object scope;
 
 public:
     MissionScript()
     {
     }
     void Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug);
+    void Run(std::string basedir, std::string missionFolderName);
+    //void Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug);
     virtual void Shutdown(void);
 
     virtual void StartMission(void);
@@ -193,13 +197,22 @@ int main(int argc, char *argv[])
     bool pdb = (argc >= 2 && argv[1][0] == 'd');
     MissionScript m;
     m.Setup(basedir, "first", remote, pdb);
+    for(int i =0; i<5;i++) {
+        if (i%2) {
+            m.Run(basedir,"first");
+        }
+        else { 
+            m.Run(basedir,"second");
+        }
+    }
+    
     Simulation::instance().clear();
 }
 
 void MissionScript::Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug)
 {
-    std::ofstream log;
-    log.open("log.txt");
+    
+    this->log.open("log.txt");
     std::wstring wdir = fs::path(basedir).wstring();
     // Path to python
     std::wstring python = wdir + L"\\..\\py_emb";
@@ -210,12 +223,12 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     // But one can cheat this way
     std::wstring wMissionDir = fs::path(script).parent_path().wstring();
     //    std::string _python = _dir; // + "\\..\\py\\py_emb";
-    log << "Script: " << script;
+    this->log << "Script: " << script;
     // Build PyPath to the embedded zip file
     // Point to python dir and the python zip
     // putting mission dir first
     std::wstring pypath =   wMissionDir + L";" + python + L"\\python39.zip;" + python;
-    log << "\nPython Path: " << fs::path(pypath).string();
+    this->log << "\nPython Path: " << fs::path(pypath).string();
     ;
     // Sets the class path, maybe add debugger?
     // if (remoteDebug) pypath = pypath+";" + dir + L"..\\debugpy"
@@ -230,51 +243,93 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     auto pax = py::module::import("pax");
     auto artemis = py::module::import("sbs");
 
-    /// The debugger looks for the file name in the sys.argv[0]
-    auto sys = py::module::import("sys");
-    sys.attr("argv") = py::make_tuple("script.py", "embed.cpp");
-    // py::print(sys.attr("version"));
-    // Don't remember what this is, Default scope?
-    py::object scope = py::module::import("__main__").attr("__dict__");
+    // /// The debugger looks for the file name in the sys.argv[0]
+    // auto sys = py::module::import("sys");
+    // sys.attr("argv") = py::make_tuple("script.py", "embed.cpp");
+    // // py::print(sys.attr("version"));
+    // // Don't remember what this is, Default scope?
+    
 
-    if (remoteDebug)
-    {
-        ///////////////////////////////////////////////////////////////////////
-        // This sets up the debugger for Vsiual Studio and Visual Studio Code
-        // This allows the python script to be debugged
-        // This requires PIP install, or in PyPath
-        auto debugpy = py::module::import("debugpy");
-        py::exec(
-            R"(
-            debugpy.listen(5678)
-            debugpy.wait_for_client()
-            )",
-            scope);
-        // debugpy.listen(5678);
-        // debugpy.wait_for_client();
-        // debugpy.log_to('path/to/logs')
-        py::print("Waiting for debugger to attach...");
-    }
-    else if (pyDebug)
-    {
-        //////////////////////////////////////////////////
-        // Alternately start pdb python's built in debugger repl
-        auto pdb = py::module::import("pdb");
-        auto st = pdb.attr("set_trace")();
-    }
+    // if (remoteDebug)
+    // {
+    //     ///////////////////////////////////////////////////////////////////////
+    //     // This sets up the debugger for Vsiual Studio and Visual Studio Code
+    //     // This allows the python script to be debugged
+    //     // This requires PIP install, or in PyPath
+    //     auto debugpy = py::module::import("debugpy");
+    //     py::exec(
+    //         R"(
+    //         debugpy.listen(5678)
+    //         debugpy.wait_for_client()
+    //         )",
+    //         scope);
+    //     // debugpy.listen(5678);
+    //     // debugpy.wait_for_client();
+    //     // debugpy.log_to('path/to/logs')
+    //     py::print("Waiting for debugger to attach...");
+    // }
+    // else if (pyDebug)
+    // {
+    //     //////////////////////////////////////////////////
+    //     // Alternately start pdb python's built in debugger repl
+    //     auto pdb = py::module::import("pdb");
+    //     auto st = pdb.attr("set_trace")();
+    // }
+ 
+}
+void MissionScript::Run(std::string basedir, std::string missionFolderName){
+    std::wstring wdir = fs::path(basedir).wstring();
+    // Path to python
+    std::wstring python = wdir + L"\\..\\py_emb";
+    // string
+    std::string dir = fs::path(basedir).string();
+    std::string script = dir + "\\..\\pb_emb\\missions\\" + missionFolderName + "\\script.py";
+    // Why is there not a standard sting<>wstring??
+    // But one can cheat this way
+    std::wstring wMissionDir = fs::path(script).parent_path().wstring();
+    //    std::string _python = _dir; // + "\\..\\py\\py_emb";
+    this->log << "Script: " << script;
+    // Build PyPath to the embedded zip file
+    // Point to python dir and the python zip
+    // putting mission dir first
+    std::wstring pypath =   wMissionDir + L";" + python + L"\\python39.zip;" + python;
+    this->log << "\nPython Path: " << fs::path(pypath).string();
+    ;
+    // Sets the class path, maybe add debugger?
+    // if (remoteDebug) pypath = pypath+";" + dir + L"..\\debugpy"
+    Py_SetPythonHome(python.c_str());
+    // Set the ths python root path
+    py::finalize_interpreter();
+    Py_SetPath(pypath.c_str());
+    py::initialize_interpreter();
+    pybind11::detail::get_internals();
 
-    printf("Running %s...\n", script.c_str());
+    printf("Running %s...\n", missionFolderName.c_str());
     PyStdErrOutStreamRedirect output;
-
     try
     {
-        //py::eval_file(script, scope);
+        //this->scope = py::module::import("__main__").attr("__dict__");
+        //this->script = py::eval_file(script, scope);
+        // https://docs.python.org/3/c-api/init.html#c.Py_NewInterpreter
+       // PyThreadState* script_inter = Py_NewInterpreter();
         this->script = py::module::import("script");
-
+        // PyGILState_STATE gstate;
+        // gstate = PyGILState_Ensure();
         this->StartMission();
+        
+
         // Run for 10 ticks
-        for(int i=0;i < 10;i++)
+        for(int i=0;i < 10;i++) {
+            // PyGILState_STATE gstate;
+            // gstate = PyGILState_Ensure();
             this->TickMission();
+            //_sleep(2000);
+            // PyGILState_Release(gstate);
+        }
+        //Py_EndInterpreter(script_inter);
+        printf("Finished %s...\n", missionFolderName.c_str());
+        //PyGILState_Release(gstate);
+
     }
     catch (py::error_already_set &e)
     {
@@ -322,8 +377,11 @@ void MissionScript::TickMission(void)
     try
     {
         py::object result = script.attr("HandleScriptTick");
+    //        py::object sim = py::cast(&Simulation::instance());
+    //  result(&Simulation::instance());
         py::object sim = py::cast(&Simulation::instance(),py::return_value_policy::reference);
         result(sim);
+        
         Simulation::instance().recycle();
     }
     catch (py::error_already_set &e)

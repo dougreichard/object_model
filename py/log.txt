@@ -1,2 +1,0 @@
-Script: F:\c\gh\object_model\py\build\..\pb_emb\missions\first\script.py
-Python Path: F:\c\gh\object_model\py\build\..\py_emb\python39.zip;F:\c\gh\object_model\py\build\..\py_emb

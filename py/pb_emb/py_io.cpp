@@ -23,7 +23,7 @@ std::string PyStdErrOutStreamRedirect::stderrString()
 }
 PyStdErrOutStreamRedirect::~PyStdErrOutStreamRedirect()
 {
-    auto sysm = py::module::import("sys");
-    sysm.attr("stdout") = _stdout;
-    sysm.attr("stderr") = _stderr;
+   auto sysm = py::module::import("sys");
+   sysm.attr("stdout") = _stdout;
+   sysm.attr("stderr") = _stderr;
 }
