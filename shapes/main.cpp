@@ -2,6 +2,12 @@
 #include "include/shape.h"
 #include <iostream>
 #include <sstream>
+#include <iostream>
+#include <regex>
+#include <string>
+
+using namespace std;
+
 
 #ifdef USE_VISITOR_ANY
 struct Print_Trait_2D : IVisitor, IVisit<Circle>, IVisit<Rect>, IVisit<DynCircle>, IVisit<Int>
@@ -219,5 +225,15 @@ void main()
         arr.accept(&json);
     }
 #endif
+
+    string str("#fred   #wilma #barney#betty"); // test string
+    regex reg("\\s*#"); // separators
+    const sregex_token_iterator end;
+    //
+    for (sregex_token_iterator it(str.begin(), str.end(), reg,-1); it != end; it ++)
+    {
+        cout << *it << endl;
+    }
+
 
 }

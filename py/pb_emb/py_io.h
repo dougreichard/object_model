@@ -11,6 +11,7 @@ class PyStdErrOutStreamRedirect
 
 public:
     PyStdErrOutStreamRedirect();
+    void exit();
     std::string stdoutString();
     std::string stderrString();
     ~PyStdErrOutStreamRedirect();

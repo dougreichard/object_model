@@ -43,6 +43,7 @@ PYBIND11_EMBEDDED_MODULE(glm, m)
 	
 	py::class_<vec3>(m, "vec3")
         .def(py::init<double,double,double>())
+        .def(py::init<const vec3& >())
         .def(py::init<>())
 		.def_readwrite("x", &vec3::x)
 		.def_readwrite("y", &vec3::y)
@@ -197,7 +198,7 @@ int main(int argc, char *argv[])
     ///////////////////////////////
     // Run two different scripts multiple times
     for(int i =0; i<5;i++) {
-        if (i%2) {
+        if ((i%2) == 1) {
             m.Setup(basedir, "first", remote, pdb);
             m.Run(basedir,"first");
             m.Shutdown();
@@ -208,6 +209,7 @@ int main(int argc, char *argv[])
             m.Shutdown();
         }
     }
+    printf("DONE - Running Scripts");
     
     Simulation::instance().clear();
 }
@@ -278,6 +280,71 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
  
 }
 
+// void MissionScript::Run(std::string basedir, std::string missionFolderName){
+ 
+//     printf("Running %s...\n", missionFolderName.c_str());
+  
+//     PyThreadState * main = PyThreadState_Get() ;
+//     PyThreadState * scriptInter = Py_NewInterpreter() ;  //     
+    
+//     try
+//     {
+//         PyThreadState_Swap(scriptInter);
+//         this->script = py::module::import("script");
+//         PyStdErrOutStreamRedirect output;
+        
+//         PyThreadState_Swap(main);
+
+//         PyThreadState_Swap(scriptInter);
+//         this->StartMission();
+//         PyThreadState_Swap(main);
+
+        
+//         // // Run for 10 ticks
+//         for(int i=0;i < 10;i++) {
+//           // PyEval_RestoreThread(_save);
+//            PyThreadState_Swap(scriptInter);
+//             this->TickMission();
+//            PyThreadState_Swap(main);
+//             // Fake artimeis sim running
+//             _sleep(1000);
+
+//         }
+//         PyThreadState_Swap(scriptInter);
+
+//         printf("Finished %s...\n", missionFolderName.c_str());
+//         printf("stdout:\n");
+//         printf(output.stdoutString().c_str());
+
+//         printf("stderr:\n");
+//         printf(output.stderrString().c_str());
+
+//         this->script.release();
+//         output.exit();
+        
+//         // printf("acq:\n");
+//         printf("endED:\n");
+//         // This will close all daemon threads        
+//         //output.exit();
+//         Py_FinalizeEx();
+        
+        
+//         //Py_EndInterpreter(scriptInter);
+//         PyThreadState_Swap(main);
+
+        
+
+//         printf("Done:\n");
+//     }
+//     catch (py::error_already_set &e)
+//     {
+//         // If python has exceptions they land here
+//         // You can examine the type for handling different things
+//         py::print(e.value());
+//     }
+//     printf("Released:\n");
+// }
+
 
 
 void MissionScript::Run(std::string basedir, std::string missionFolderName){
@@ -286,27 +353,41 @@ void MissionScript::Run(std::string basedir, std::string missionFolderName){
     PyStdErrOutStreamRedirect output;
     try
     {
-        //this->scope = py::module::import("__main__").attr("__dict__");
-        //this->script = py::eval_file(script, scope);
-        // https://docs.python.org/3/c-api/init.html#c.Py_NewInterpreter
-       // PyThreadState* script_inter = Py_NewInterpreter();
         this->script = py::module::import("script");
-        // PyGILState_STATE gstate;
-        // gstate = PyGILState_Ensure();
+        PyThreadState *_save; 
+
+        // Save when you are going to block in C++
+        _save = PyEval_SaveThread();
+
+        // And sometime later
+        // Restore to call Python
+        PyEval_RestoreThread(_save);
         this->StartMission();
+        // Save again to allow C++ to block
+        _save = PyEval_SaveThread();
         
 
         // Run for 10 ticks
         for(int i=0;i < 10;i++) {
-            // PyGILState_STATE gstate;
-            // gstate = PyGILState_Ensure();
+            // Restore to call Python
+           PyEval_RestoreThread(_save);
             this->TickMission();
-            //_sleep(2000);
-            // PyGILState_Release(gstate);
-        }
-        printf("Finished %s...\n", missionFolderName.c_str());
-        //PyGILState_Release(gstate);
+            // Save when you are going to block in C++
+           _save = PyEval_SaveThread();
 
+           // Simulate C++ Blocking
+            _sleep(1000);
+        }
+
+        // Restore to cleanup 
+        PyEval_RestoreThread(_save);
+
+        printf("Finished %s...\n", missionFolderName.c_str());
+        printf("stdout:\n");
+        printf(output.stdoutString().c_str());
+        printf("stderr:\n");
+        printf(output.stderrString().c_str());
+        this->script.release();
     }
     catch (py::error_already_set &e)
     {
@@ -314,21 +395,18 @@ void MissionScript::Run(std::string basedir, std::string missionFolderName){
         // You can examine the type for handling different things
         py::print(e.value());
     }
-    printf("stdout:\n");
-    printf(output.stdoutString().c_str());
 
-    printf("stderr:\n");
-    printf(output.stderrString().c_str());
 }
 
 void MissionScript::Shutdown()
 {
     // Release memory of script module
-    this->script.release();
+    //this->script.release();
     // SubInterpreter
     //Py_EndInterpreter(script_inter);
-    // Teardown interpreter
+    printf("preFinalEx:\n");
     py::finalize_interpreter();
+    printf("finalize_:\n");
 }
 
 void MissionScript::StartMission(void)

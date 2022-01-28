@@ -22,8 +22,12 @@ std::string PyStdErrOutStreamRedirect::stderrString()
     return py::str(_stderr_buffer.attr("read")());
 }
 PyStdErrOutStreamRedirect::~PyStdErrOutStreamRedirect()
+{}
+void PyStdErrOutStreamRedirect::exit()
 {
    auto sysm = py::module::import("sys");
    sysm.attr("stdout") = _stdout;
    sysm.attr("stderr") = _stderr;
+   _stdout_buffer.release();
+   _stderr_buffer.release();
 }
