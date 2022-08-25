@@ -9,24 +9,31 @@
 
 //#include <codecvt>
 #include <string>
+#include <sstream>
 #include <filesystem>
 namespace fs = std::filesystem;
 
 #include "py_io.h"
-
+#include <string>
+#include <regex>
+#include <chrono>
+using namespace std::chrono;
 
 PYBIND11_EMBEDDED_MODULE(pax, m)
 {
     // `m` is a `py::module` which is used to bind functions and classes
 }
 
-namespace glm {
-    struct vec2 {
+namespace glm
+{
+    struct vec2
+    {
         double x;
         double y;
     };
-    struct vec3 {
-        vec3(double x=0, double y=0, double z=0): x(x), y(y), z(z) {}
+    struct vec3
+    {
+        vec3(double x = 0, double y = 0, double z = 0) : x(x), y(y), z(z) {}
         double x;
         double y;
         double z;
@@ -37,19 +44,16 @@ PYBIND11_EMBEDDED_MODULE(glm, m)
     using namespace glm;
     m.doc() = "GLM module";
     py::class_<vec2>(m, "vec2")
-		.def_readwrite("x", &glm::vec2::x)
-		.def_readwrite("y", &glm::vec2::y)
-		;
-	
-	py::class_<vec3>(m, "vec3")
-        .def(py::init<double,double,double>())
-        .def(py::init<const vec3& >())
-        .def(py::init<>())
-		.def_readwrite("x", &vec3::x)
-		.def_readwrite("y", &vec3::y)
-		.def_readwrite("z", &vec3::z)
-		;
+        .def_readwrite("x", &glm::vec2::x)
+        .def_readwrite("y", &glm::vec2::y);
 
+    py::class_<vec3>(m, "vec3")
+        .def(py::init<double, double, double>())
+        .def(py::init<const vec3 &>())
+        .def(py::init<>())
+        .def_readwrite("x", &vec3::x)
+        .def_readwrite("y", &vec3::y)
+        .def_readwrite("z", &vec3::z);
 }
 
 // py::enum_<Pet::Kind>(pet, "Kind")
@@ -62,121 +66,246 @@ using namespace glm;
 //         double y;
 //         double z;
 //     };
-struct SpaceObject {
+struct SpaceObject
+{
     vec3 pos;
-    SpaceObject () {
+    SpaceObject()
+    {
         pos.x = 1.0;
         pos.y = 2.0;
         pos.z = 3.0;
     }
-    void move(vec3 v) {
+    void move(vec3 v)
+    {
         this->pos.x += v.x;
         this->pos.y += v.y;
         this->pos.z += v.z;
     }
 };
 
-struct ObjectHandle {
+struct ObjectHandle
+{
     int32_t handle;
 };
 
-struct Simulation {
-    std::unordered_map<uint32_t, SpaceObject*> objects;
+struct Simulation
+{
+    std::unordered_map<uint32_t, SpaceObject *> objects;
     std::unordered_set<uint32_t> bin;
-    ~Simulation() {
+    ~Simulation()
+    {
         std::cout << "WTF";
-       // clear();
+        // clear();
     }
 
-    SpaceObject* object_exists(uint32_t handle) {
+    SpaceObject *object_exists(uint32_t handle)
+    {
         auto got = objects.find(handle);
-        if (got != objects.end())  {
+        if (got != objects.end())
+        {
             return got->second;
         }
         return nullptr;
     }
-    uint32_t AddSpaceObject(std::string aiTag, std::string dataTag, bool isPlayer, bool isActive) {
+    uint32_t AddSpaceObject(std::string aiTag, std::string dataTag, bool isPlayer, bool isActive)
+    {
         auto ID = crc(dataTag.begin(), dataTag.end());
-        SpaceObject* object = new SpaceObject();
+        SpaceObject *object = new SpaceObject();
         objects.insert(std::make_pair(ID, object));
         return ID;
-
     }
-    void DeleteSpaceObject(uint32_t ID) {
+    void DeleteSpaceObject(uint32_t ID)
+    {
         bin.insert(ID);
     }
-    
+
     // take out trash
-    void recycle() {
-        for (const auto ID : bin) {
+    void recycle()
+    {
+        for (const auto ID : bin)
+        {
             auto got = objects.find(ID);
-            if (got != objects.end())  {
+            if (got != objects.end())
+            {
                 delete got->second;
             }
         }
         bin.clear();
     }
 
-    void clear() {
-        for (const auto & [ key, value ] : objects) {
+    void clear()
+    {
+        for (const auto &[key, value] : objects)
+        {
             delete value;
         }
         objects.clear();
     }
 
-
-    static  Simulation& instance() {
-        static Simulation* simulation = new Simulation();
+    static Simulation &instance()
+    {
+        static Simulation *simulation = new Simulation();
         return *simulation;
     }
 
-      Simulation() = default;
+    Simulation() = default;
+
 private:
-  // Delete copy/move so extra instances can't be created/moved.
-  Simulation(const Simulation&) = delete;
-  Simulation& operator=(const Simulation&) = delete;
-  Simulation(Simulation&&) = delete;
-  Simulation& operator=(Simulation&&) = delete;
+    // Delete copy/move so extra instances can't be created/moved.
+    Simulation(const Simulation &) = delete;
+    Simulation &operator=(const Simulation &) = delete;
+    Simulation(Simulation &&) = delete;
+    Simulation &operator=(Simulation &&) = delete;
 };
 
+//////////////////////////////////////////////////
+// A purely C++ object for capturing output stream
+// to a stringstream
+class Logger
+{
+    std::stringstream ss;
 
+public:
+    void write(std::string str)
+    {
+        ss << str;
+    }
+    void flush()
+    {
+        ss.flush();
+    }
+    std::string get()
+    {
+        std::string ret = ss.str();
+        std::stringstream().swap(ss);
+        return ret;
+    }
+};
 
 PYBIND11_EMBEDDED_MODULE(sbs, m)
 {
     // Using the glm module stuff
     py::module_::import("glm");
 
-    
     m.def("get_simulation", &Simulation::instance, py::return_value_policy::reference);
     py::class_<SpaceObject>(m, "SpaceObject")
-       // .def(py::init())
-		.def_readwrite<SpaceObject, vec3>("pos", &SpaceObject::pos)
+        // .def(py::init())
+        .def_readwrite<SpaceObject, vec3>("pos", &SpaceObject::pos)
         // .def("get_pos", &SpaceObject::get_pos, py::return_value_policy::reference_internal);
         // .def_property("name", &Pet::getName, &Pet::setName)
-        .def("move", &SpaceObject::move)
-        ;
-	py::class_<Simulation>(m, "Simulation")
+        .def("move", &SpaceObject::move);
+    py::class_<Simulation>(m, "Simulation")
         //.def_readwrite_static("instance", &Simulation::instance)
         .def("get_space_object", &Simulation::object_exists, py::return_value_policy::reference_internal)
-        .def("add_player", [](Simulation& self, std::string ai, std::string data) {return self.AddSpaceObject(ai,data,true,true);})
-        .def("add_active", [](Simulation& self, std::string ai, std::string data) {return self.AddSpaceObject(ai,data,false,true);})
-        .def("add_passive", [](Simulation& self, std::string ai, std::string data) {return self.AddSpaceObject(ai,data,false,false);})
-        .def("delete_object", &Simulation::DeleteSpaceObject)
-        ;
+        .def("add_player", [](Simulation &self, std::string ai, std::string data)
+             { return self.AddSpaceObject(ai, data, true, true); })
+        .def("add_active", [](Simulation &self, std::string ai, std::string data)
+             { return self.AddSpaceObject(ai, data, false, true); })
+        .def("add_passive", [](Simulation &self, std::string ai, std::string data)
+             { return self.AddSpaceObject(ai, data, false, false); })
+        .def("delete_object", &Simulation::DeleteSpaceObject);
+    py::class_<Logger>(m, "Writer")
+        .def("write", &Logger::write)
+        .def("flush", &Logger::flush);
+}
+
+void time_face(const std::string &layers)
+{
+    // Regular expression for a layer
+    const std::regex layers_regex(R"((\w*)\s+(#[0-9A-Fa-f]*|\w*)\s*([+|-]?\d*)?\s*([+|-]?\d*)?\s*([+|-]?\d*)?\s*([+|-]?\d*)?;?)");
+    // Iterator to get each match
+    const std::sregex_iterator end;
+    std::sregex_iterator it(layers.cbegin(), layers.cend(), layers_regex);
+    for (; it != end; it++)
+    {
+
+        auto t = it->str(1);
+        auto c = it->str(2);
+        int oX, oY, cX, cY;
+
+        // Look for cell and offsets, using stoi to show how to convert to int
+        if (it->length(3))
+            cX = std::stoi(it->str(3));
+        if (it->length(4))
+            cY = std::stoi(it->str(4));
+        if (it->length(5))
+            oX = std::stoi(it->str(5));
+        if (it->length(6))
+            oY = std::stoi(it->str(6));
+    }
+}
+
+void parse_face(const std::string &layers)
+{
+    // Regular expression for a layer
+    static const std::regex layers_regex("(\\w*)\\s+(#[0-9A-Fa-f]*|\\w*)\\s*([+|-]?\\d*)?\\s*([+|-]?\\d*)?\\s*([+|-]?\\d*)?\\s*([+|-]?\\d*)?;?");
+    std::smatch layers_match;
+
+    std::smatch m;
+
+    // Iterator to get each match
+    const std::sregex_iterator end;
+    std::sregex_iterator it(layers.cbegin(), layers.cend(), layers_regex);
+    for (; it != end; it++)
+    {
+        std::cout << "Matched: " << it->str(0) << std::endl;
+        std::cout << "\tTexture: " << it->str(1) << std::endl;
+        std::cout << "\tColor: " << it->str(2) << std::endl;
+        // Look for cell and offsets, using stoi to show how to convert to int
+        if (it->length(3))
+            std::cout << "\tcellX: " << std::stoi(it->str(3)) << std::endl;
+        if (it->length(4))
+            std::cout << "\tcellY: " << std::stoi(it->str(4)) << std::endl;
+        if (it->length(5))
+            std::cout << "\toffsetX: " << std::stoi(it->str(5)) << std::endl;
+        if (it->length(6))
+            std::cout << "\toffsetY: " << std::stoi(it->str(6)) << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void time_regex()
+{
+
+    // Use auto keyword to avoid typing long
+    // type definitions to get the timepoint
+    // at this instant use function now()
+    auto start = high_resolution_clock::now();
+    for (int i = 0; i < 100; i++)
+        time_face("ter white 0 0;ter #fff 5 2;ter #fff 6 3 -3 2;ter white 0 0;ter #fff 5 2;ter white 0 0;ter #fff 5 7;");
+    auto stop = high_resolution_clock::now();
+    // Check forgeting final semi
+    // parse_face("ter white 0 0;ter #f0f 5 2;ter #Fff 6 3 -3 2;ter white 0 0;ter #fff 5 2;ter white 0 0;ter #fff 5 7");
+    auto duration = duration_cast<milliseconds>(stop - start);
+
+    std::cout << duration.count() << std::endl;
 }
 
 class MissionScript
 {
+    Logger log_stdout;
+    Logger log_stderr;
     std::ofstream log;
+    PyThreadState *_save;
     py::object script;
 
 public:
     MissionScript()
     {
+        _save = NULL;
+    }
+    void ReadyCPP()
+    {
+        this->_save = PyEval_SaveThread();
+        //_save = PyEval_SaveThread();
+    }
+    void ReadyPython()
+    {
+        PyEval_RestoreThread(this->_save);
     }
     void Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug);
     void Run(std::string basedir, std::string missionFolderName);
-    //void Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug);
+    // void Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug);
     virtual void Shutdown(void);
 
     virtual void StartMission(void);
@@ -197,26 +326,32 @@ int main(int argc, char *argv[])
     MissionScript m;
     ///////////////////////////////
     // Run two different scripts multiple times
-    for(int i =0; i<5;i++) {
-        if ((i%2) == 1) {
+    for (int i = 0; i < 5; i++)
+    {
+        if ((i % 2) == 1)
+        {
             m.Setup(basedir, "first", remote, pdb);
-            m.Run(basedir,"first");
+            m.Run(basedir, "first");
             m.Shutdown();
         }
-        else { 
+        else
+        {
             m.Setup(basedir, "second", remote, pdb);
-            m.Run(basedir,"second");
+            m.Run(basedir, "second");
             m.Shutdown();
         }
     }
+    // m.Setup(basedir, "im", remote, pdb);
+    // m.Run(basedir,"im");
+    // m.Shutdown();
     printf("DONE - Running Scripts");
-    
+
     Simulation::instance().clear();
 }
 
 void MissionScript::Setup(std::string basedir, std::string missionFolderName, bool remoteDebug, bool pyDebug)
 {
-    
+
     this->log.open("log.txt");
 
     std::wstring wdir = fs::path(basedir).wstring();
@@ -233,8 +368,9 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     // Build PyPath to the embedded zip file
     // Point to python dir and the python zip
     // putting mission dir first
-    std::wstring pypath =   wMissionDir + L";" + python + L"\\python39.zip;" + python;
+    std::wstring pypath = wMissionDir + L";" + python + L"\\python39.zip;" + python;
     this->log << "\nPython Path: " << fs::path(pypath).string();
+    this->log.flush();
     ;
     // Sets the class path, maybe add debugger?
     // if (remoteDebug) pypath = pypath+";" + dir + L"..\\debugpy"
@@ -245,12 +381,20 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     py::initialize_interpreter();
     pybind11::detail::get_internals();
 
+    // Hook stdout/stderr
+    py::module::import("sbs");
+    py::module::import("sys").attr("stdout") = &log_stdout; // Must be pointer so it is this one
+    py::module::import("sys").attr("stderr") = &log_stderr; // Must be pointer so it is this one
+    // load script
+    this->script = py::module::import("script");
+    this->ReadyCPP();
+    printf("Running %s...\n", missionFolderName.c_str());
+
     // /// The debugger looks for the file name in the sys.argv[0]
     // auto sys = py::module::import("sys");
     // sys.attr("argv") = py::make_tuple("script.py", "embed.cpp");
     // // py::print(sys.attr("version"));
     // // Don't remember what this is, Default scope?
-    
 
     // if (remoteDebug)
     // {
@@ -277,29 +421,118 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     //     auto pdb = py::module::import("pdb");
     //     auto st = pdb.attr("set_trace")();
     // }
- 
+}
+
+void MissionScript::Run(std::string basedir, std::string missionFolderName)
+{
+
+    try
+    {
+
+        this->StartMission();
+        // Run for 10 ticks
+        for (int i = 0; i < 10; i++)
+        {
+            this->TickMission();
+            // Simulate C++ Blocking
+            _sleep(1000);
+        }
+    }
+    catch (py::error_already_set &e)
+    {
+        // If python has exceptions they land here
+        // You can examine the type for handling different things
+        py::print(e.value());
+    }
+}
+
+void MissionScript::Shutdown()
+{
+
+    this->ReadyPython();
+    // printf("Finished %s...\n", missionFolderName.c_str());
+    printf("Finished script...\n");
+    printf("stdout:\n");
+    // printf(output->stdoutString().c_str());
+    printf("stderr:\n");
+    // printf(output->stderrString().c_str());
+    this->script.release();
+    // delete this->output;
+    // this->output = NULL;
+
+    printf("preFinalEx:\n");
+    py::finalize_interpreter();
+    printf("finalize_:\n");
+    this->_save = NULL;
+}
+
+void MissionScript::StartMission(void)
+{
+    try
+    {
+        this->ReadyPython();
+        py::object result = script.attr("HandleScriptStart");
+        py::object sim = py::cast(&Simulation::instance(), py::return_value_policy::reference);
+        result(sim);
+        Simulation::instance().recycle();
+    }
+    catch (py::error_already_set &e)
+    {
+        // If python has exceptions they land here
+        // You can examine the type for handling different things
+        py::print(e.value());
+    }
+    this->ReadyCPP();
+    
+    std::cout << log_stdout.get();
+    std::cerr << log_stderr.get();
+
+    isRunning = true;
+}
+
+void MissionScript::TickMission(void)
+{
+    if (!isRunning)
+        return;
+
+    try
+    {
+        this->ReadyPython();
+        py::object result = script.attr("HandleScriptTick");
+        py::object sim = py::cast(&Simulation::instance(), py::return_value_policy::reference);
+        result(sim);
+        Simulation::instance().recycle();
+    }
+    catch (py::error_already_set &e)
+    {
+        // If python has exceptions they land here
+        // You can examine the type for handling different things
+        py::print(e.value());
+    }
+    this->ReadyCPP();
+    std::cout << log_stdout.get();
+    std::cerr << log_stderr.get();
 }
 
 // void MissionScript::Run(std::string basedir, std::string missionFolderName){
- 
+
 //     printf("Running %s...\n", missionFolderName.c_str());
-  
+
 //     PyThreadState * main = PyThreadState_Get() ;
-//     PyThreadState * scriptInter = Py_NewInterpreter() ;  //     
-    
+//     PyThreadState * scriptInter = Py_NewInterpreter() ;  //
+
 //     try
 //     {
 //         PyThreadState_Swap(scriptInter);
 //         this->script = py::module::import("script");
 //         PyStdErrOutStreamRedirect output;
-        
+
 //         PyThreadState_Swap(main);
 
 //         PyThreadState_Swap(scriptInter);
 //         this->StartMission();
 //         PyThreadState_Swap(main);
 
-        
 //         // // Run for 10 ticks
 //         for(int i=0;i < 10;i++) {
 //           // PyEval_RestoreThread(_save);
@@ -321,18 +554,15 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
 
 //         this->script.release();
 //         output.exit();
-        
+
 //         // printf("acq:\n");
 //         printf("endED:\n");
-//         // This will close all daemon threads        
+//         // This will close all daemon threads
 //         //output.exit();
 //         Py_FinalizeEx();
-        
-        
+
 //         //Py_EndInterpreter(scriptInter);
 //         PyThreadState_Swap(main);
-
-        
 
 //         printf("Done:\n");
 //     }
@@ -344,111 +574,3 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
 //     }
 //     printf("Released:\n");
 // }
-
-
-
-void MissionScript::Run(std::string basedir, std::string missionFolderName){
- 
-    printf("Running %s...\n", missionFolderName.c_str());
-    PyStdErrOutStreamRedirect output;
-    try
-    {
-        this->script = py::module::import("script");
-        PyThreadState *_save; 
-
-        // Save when you are going to block in C++
-        _save = PyEval_SaveThread();
-
-        // And sometime later
-        // Restore to call Python
-        PyEval_RestoreThread(_save);
-        this->StartMission();
-        // Save again to allow C++ to block
-        _save = PyEval_SaveThread();
-        
-
-        // Run for 10 ticks
-        for(int i=0;i < 10;i++) {
-            // Restore to call Python
-           PyEval_RestoreThread(_save);
-            this->TickMission();
-            // Save when you are going to block in C++
-           _save = PyEval_SaveThread();
-
-           // Simulate C++ Blocking
-            _sleep(1000);
-        }
-
-        // Restore to cleanup 
-        PyEval_RestoreThread(_save);
-
-        printf("Finished %s...\n", missionFolderName.c_str());
-        printf("stdout:\n");
-        printf(output.stdoutString().c_str());
-        printf("stderr:\n");
-        printf(output.stderrString().c_str());
-        this->script.release();
-    }
-    catch (py::error_already_set &e)
-    {
-        // If python has exceptions they land here
-        // You can examine the type for handling different things
-        py::print(e.value());
-    }
-
-}
-
-void MissionScript::Shutdown()
-{
-    // Release memory of script module
-    //this->script.release();
-    // SubInterpreter
-    //Py_EndInterpreter(script_inter);
-    printf("preFinalEx:\n");
-    py::finalize_interpreter();
-    printf("finalize_:\n");
-}
-
-void MissionScript::StartMission(void)
-{
-    try {
-        py::object result = script.attr("HandleScriptStart");
-        py::object sim = py::cast(&Simulation::instance(),py::return_value_policy::reference);
-        result(sim);
-        //Not sure why they'd delete but...
-        Simulation::instance().recycle();
-    }
-    catch (py::error_already_set &e)
-    {
-        // If python has exceptions they land here
-        // You can examine the type for handling different things
-        py::print(e.value());
-    }
-
-    // ManageTrappedOutput(60, 20);
-
-    isRunning = true;
-}
-
-void MissionScript::TickMission(void)
-{
-    if (!isRunning)
-        return;
-
-    try
-    {
-        py::object result = script.attr("HandleScriptTick");
-    //        py::object sim = py::cast(&Simulation::instance());
-    //  result(&Simulation::instance());
-        py::object sim = py::cast(&Simulation::instance(),py::return_value_policy::reference);
-        result(sim);
-        
-        Simulation::instance().recycle();
-    }
-    catch (py::error_already_set &e)
-    {
-        // If python has exceptions they land here
-        // You can examine the type for handling different things
-        py::print(e.value());
-    }
-}
