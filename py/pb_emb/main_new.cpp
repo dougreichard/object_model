@@ -91,74 +91,34 @@ struct ObjectHandle
     int32_t handle;
 };
 
-/*
-std::vector<std::unique_ptr<SbsEvent::Event>> make_events() {
-    std::vector<std::unique_ptr<SbsEvent::Event>> foos;
-    //foos.push_back(make_unique<Foo>("Hello"));
-    //foos.push_back(make_unique<Foo>("World"));
-    return foos;
-}
-
-std::vector<SbsEvent::Event *> get_events() {
-    static std::vector<std::unique_ptr<SbsEvent::Event>> all_foos = make_events();
-
-    std::vector<SbsEvent::Event *> foos;
-    for (std::unique_ptr<SbsEvent::Event> &foo : all_foos) {
-        foos.push_back(foo.get());
-    }
-    return foos;
-}
-*/
 
 struct Simulation
 {
     std::unordered_map<uint32_t, SpaceObject *> objects;
     std::unordered_set<uint32_t> bin;
-    std::vector<std::shared_ptr<SbsEvent::Event>> events;
+//    std::vector<std::shared_ptr<SbsEvent::Event>> events;
     std::vector<std::unique_ptr<SbsEvent::Event>> uevents;
+    std::vector<std::unique_ptr<SbsEvent::Event, py::nodelete>> u2events;
     std::vector<SbsEvent::Event*> pevents;
     //py::list events;
 
     /*
         This seems to be the one that works, 
-        tranfer ownership of the vector 
+        transfer ownership of the vector 
     */
     std::vector<std::unique_ptr<SbsEvent::Event>> get_events(){
         uevents.push_back(std::make_unique<SbsEvent::PresentGui>());
-        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("Hello", 12));
+        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloInt", 12, 2));
+        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloFloat", 12, 2.0f));
+        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloStr", 12, "Two"));
         std::vector<std::unique_ptr<SbsEvent::Event>> e = std::move(uevents);
-        //e.push_back(std::make_unique<SbsEvent::PresentGui>());
-        //e.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("Hello", 12));
-        
         return e;
     }
  
-    py::list get_events3(){
-        //uevents.push_back(std::make_unique<SbsEvent::PresentGui>());
-        //uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("Hello", 12));
-        py::list e;
-        e.append(py::cast(new SbsEvent::PresentGui()));
-        e.append(py::cast(new SbsEvent::PresentGuiMessage("Hello", 12)));
-        
-        return e;
+    std::vector<SbsEvent::Event*>& get_events_ref(){
+        return pevents;
     }
-    std::vector<std::shared_ptr<SbsEvent::Event>> get_events2(){
-        std::vector<std::shared_ptr<SbsEvent::Event>> e;
-        std::shared_ptr<SbsEvent::PresentGui> p =
-            std::make_shared<SbsEvent::PresentGui>();
-        e.push_back(p);
-        return e;
-        
-    }
-    std::vector<SbsEvent::Event*> get_events4(){
-        pevents.push_back(new SbsEvent::PresentGui());
-        pevents.push_back(new SbsEvent::PresentGuiMessage("Hello", 12));
-        std::vector<SbsEvent::Event*> e = std::move(pevents);
-        
-        
-        return e;
-        
-    }
+
 
     ~Simulation()
     {
@@ -278,10 +238,9 @@ PYBIND11_EMBEDDED_MODULE(sbs, m)
         .def("add_passive", [](Simulation &self, std::string ai, std::string data)
              { return self.AddSpaceObject(ai, data, false, false); })
         .def("delete_object", &Simulation::DeleteSpaceObject)
-        .def("get_events", &Simulation::get_events, py::return_value_policy::reference_internal)
-        .def("get_events2", &Simulation::get_events2, py::return_value_policy::reference_internal)
-        .def("get_events3", &Simulation::get_events3)
-        .def("get_events4", &Simulation::get_events4)
+        .def("get_events_move", &Simulation::get_events, py::return_value_policy::reference_internal)
+        .def("get_events_ref", &Simulation::get_events_ref, py::return_value_policy::reference_internal)
+        .def("get_events_ref_del", &Simulation::get_events_ref)
         ;
     py::class_<Logger>(m, "Writer")
         .def("write", &Logger::write)
@@ -464,7 +423,7 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
     // Hook stdout/stderr
     py::module::import("sbs");
     py::module::import("sbsevent");
-    py::module::import("example");
+
     py::module::import("sys").attr("stdout") = &log_stdout; // Must be pointer so it is this one
     py::module::import("sys").attr("stderr") = &log_stderr; // Must be pointer so it is this one
     // load script
@@ -582,20 +541,14 @@ void MissionScript::DoEvents(void)
     {
         this->ReadyPython();
        
-        ///events->push_back(std::make_unique<SbsEvent::PresentGui>());
         
-        //Simulation::instance().events.append(Test());
-        // Simulation::instance().events.append(py::cast(new SbsEvent::PresentGuiMessage("butthead", 42)));
-        // Simulation::instance().events.append(1);
-        
-        //Simulation::instance().events.push_back(new SbsEvent::PresentGuiMessage("butthead", 42));
-        //Simulation::instance().events.push_back(new SbsEvent::PresentGui());
+        Simulation::instance().pevents.push_back(new SbsEvent::PresentGuiMessage("butthead", 42,2));
+
+        Simulation::instance().pevents.push_back(new SbsEvent::PresentGui());
 
         //Simulation::instance().events.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("butthead", 42));
         //Simulation::instance().events.push_back(std::make_unique<SbsEvent::PresentGui>());
         //Simulation::instance().events.push_back(std::make_shared<SbsEvent::PresentGuiMessage>("butthead", 42));
-        auto e = std::make_shared<SbsEvent::PresentGui>();
-        Simulation::instance().events.push_back(e);
 
 
         py::object result = script.attr("HandleEvents");
@@ -641,63 +594,3 @@ void MissionScript::TickMission(void)
     std::cerr << log_stderr.get();
 }
 
-// void MissionScript::Run(std::string basedir, std::string missionFolderName){
-
-//     printf("Running %s...\n", missionFolderName.c_str());
-
-//     PyThreadState * main = PyThreadState_Get() ;
-//     PyThreadState * scriptInter = Py_NewInterpreter() ;  //
-
-//     try
-//     {
-//         PyThreadState_Swap(scriptInter);
-//         this->script = py::module::import("script");
-//         PyStdErrOutStreamRedirect output;
-
-//         PyThreadState_Swap(main);
-
-//         PyThreadState_Swap(scriptInter);
-//         this->StartMission();
-//         PyThreadState_Swap(main);
-
-//         // // Run for 10 ticks
-//         for(int i=0;i < 10;i++) {
-//           // PyEval_RestoreThread(_save);
-//            PyThreadState_Swap(scriptInter);
-//             this->TickMission();
-//            PyThreadState_Swap(main);
-//             // Fake artimeis sim running
-//             _sleep(1000);
-
-//         }
-//         PyThreadState_Swap(scriptInter);
-
-//         printf("Finished %s...\n", missionFolderName.c_str());
-//         printf("stdout:\n");
-//         printf(output.stdoutString().c_str());
-
-//         printf("stderr:\n");
-//         printf(output.stderrString().c_str());
-
-//         this->script.release();
-//         output.exit();
-
-//         // printf("acq:\n");
-//         printf("endED:\n");
-//         // This will close all daemon threads
-//         //output.exit();
-//         Py_FinalizeEx();
-
-//         //Py_EndInterpreter(scriptInter);
-//         PyThreadState_Swap(main);
-
-//         printf("Done:\n");
-//     }
-//     catch (py::error_already_set &e)
-//     {
-//         // If python has exceptions they land here
-//         // You can examine the type for handling different things
-//         py::print(e.value());
-//     }
-//     printf("Released:\n");
-// }

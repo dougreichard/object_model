@@ -1,7 +1,6 @@
 import glm
 import sbs
 import sbsevent
-import example
 
 #help(glm)
 #help(artemis)
@@ -22,12 +21,18 @@ def  HandleScriptStart(sim):
 def HandleScriptTick(sim):
     global player
 
-    print(len(sim.get_events()))
-    for e in sim.get_events4():
+    #print(len(sim.get_events()))
+    for e in sim.get_events_move():
        print(e)
        print(e.type)
        if e.type == sbsevent.EventType.PRESENT_GUI_MESSAGE:
           print(e.message_tag)
+          print(f"{e.data} {type(e.data)}")
+    # for e in sim.get_events4():
+    #    print(e)
+    #    print(e.type)
+    #    if e.type == sbsevent.EventType.PRESENT_GUI_MESSAGE:
+    #       print(e.message_tag)
     
     # print("Script tick ")
     # art = sim.get_space_object(player)
