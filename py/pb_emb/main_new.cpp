@@ -107,10 +107,6 @@ struct Simulation
         transfer ownership of the vector 
     */
     std::vector<std::unique_ptr<SbsEvent::Event>> get_events(){
-        uevents.push_back(std::make_unique<SbsEvent::PresentGui>());
-        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloInt", 12, 2));
-        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloFloat", 12, 2.0f));
-        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloStr", 12, "Two"));
         std::vector<std::unique_ptr<SbsEvent::Event>> e = std::move(uevents);
         return e;
     }
@@ -240,7 +236,7 @@ PYBIND11_EMBEDDED_MODULE(sbs, m)
         .def("delete_object", &Simulation::DeleteSpaceObject)
         .def("get_events_move", &Simulation::get_events, py::return_value_policy::reference_internal)
         .def("get_events_ref", &Simulation::get_events_ref, py::return_value_policy::reference_internal)
-        .def("get_events_ref_del", &Simulation::get_events_ref)
+
         ;
     py::class_<Logger>(m, "Writer")
         .def("write", &Logger::write)
@@ -541,8 +537,14 @@ void MissionScript::DoEvents(void)
     {
         this->ReadyPython();
        
-        
-        Simulation::instance().pevents.push_back(new SbsEvent::PresentGuiMessage("butthead", 42,2));
+        Simulation::instance().uevents.push_back(std::make_unique<SbsEvent::PresentGui>());
+        Simulation::instance().uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloInt", 12, 2));
+        Simulation::instance().uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloFloat", 12, 2.0f));
+        Simulation::instance().uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("HelloStr", 12, "Two"));
+
+        Simulation::instance().pevents.push_back(new SbsEvent::PresentGuiMessage("ValInt", 42,2));
+        Simulation::instance().pevents.push_back(new SbsEvent::PresentGuiMessage("ValFloat", 42,3.14f));
+        Simulation::instance().pevents.push_back(new SbsEvent::PresentGuiMessage("ValInt", 42, "Yo gabagaba"));
 
         Simulation::instance().pevents.push_back(new SbsEvent::PresentGui());
 
@@ -553,7 +555,19 @@ void MissionScript::DoEvents(void)
 
         py::object result = script.attr("HandleEvents");
         py::object sim = py::cast(&Simulation::instance(), py::return_value_policy::reference);
-        result(sim);
+        
+        if (true) {
+            // Don't need the function to get the reference
+            // if you cast properly as a reference
+            py::object ev = py::cast(&Simulation::instance().pevents, py::return_value_policy::reference);
+            result(sim, ev);
+        }
+        else {
+            result(sim, Simulation::instance().get_events_ref());
+        }
+
+        
+
         Simulation::instance().recycle();
     }
     catch (py::error_already_set &e)

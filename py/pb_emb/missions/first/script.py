@@ -22,7 +22,7 @@ def HandleScriptTick(sim):
     global player
 
     #print(len(sim.get_events()))
-    for e in sim.get_events_move():
+    for e in ev:
        print(e)
        print(e.type)
        if e.type == sbsevent.EventType.PRESENT_GUI_MESSAGE:
@@ -40,8 +40,8 @@ def HandleScriptTick(sim):
     # print("Artemis is at X: %d Y: %d Z: %d" % (art.pos.x, art.pos.y, art.pos.z))
 
 
-def HandleEvents(sim):
-    print(len(sim.get_events()))
-    for e in sim.get_events():
+def HandleEvents(sim, ev):
+    print(len(ev))
+    for e in ev:
        print(e)
        pass

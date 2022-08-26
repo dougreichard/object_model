@@ -43,7 +43,7 @@ def HandleScriptTick(sim):
     # art.move(glm.vec3(20,30,40))
     # print("Artemis is at X: %d Y: %d Z: %d" % (art.pos.x, art.pos.y, art.pos.z))
 
-def HandleEvents(sim):
+def HandleEvents(sim, ev):
     #for e in sim.events:
     #    print(e)
     pass
