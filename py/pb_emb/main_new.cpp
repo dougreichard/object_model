@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unordered_map>
 #include "crc.h"
+#include <pybind11/stl.h>
 
 //#include <codecvt>
 #include <string>
@@ -14,6 +15,8 @@
 namespace fs = std::filesystem;
 
 #include "py_io.h"
+#include "event.h"
+
 #include <string>
 #include <regex>
 #include <chrono>
@@ -88,15 +91,81 @@ struct ObjectHandle
     int32_t handle;
 };
 
+/*
+std::vector<std::unique_ptr<SbsEvent::Event>> make_events() {
+    std::vector<std::unique_ptr<SbsEvent::Event>> foos;
+    //foos.push_back(make_unique<Foo>("Hello"));
+    //foos.push_back(make_unique<Foo>("World"));
+    return foos;
+}
+
+std::vector<SbsEvent::Event *> get_events() {
+    static std::vector<std::unique_ptr<SbsEvent::Event>> all_foos = make_events();
+
+    std::vector<SbsEvent::Event *> foos;
+    for (std::unique_ptr<SbsEvent::Event> &foo : all_foos) {
+        foos.push_back(foo.get());
+    }
+    return foos;
+}
+*/
+
 struct Simulation
 {
     std::unordered_map<uint32_t, SpaceObject *> objects;
     std::unordered_set<uint32_t> bin;
+    std::vector<std::shared_ptr<SbsEvent::Event>> events;
+    std::vector<std::unique_ptr<SbsEvent::Event>> uevents;
+    std::vector<SbsEvent::Event*> pevents;
+    //py::list events;
+
+    /*
+        This seems to be the one that works, 
+        tranfer ownership of the vector 
+    */
+    std::vector<std::unique_ptr<SbsEvent::Event>> get_events(){
+        uevents.push_back(std::make_unique<SbsEvent::PresentGui>());
+        uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("Hello", 12));
+        std::vector<std::unique_ptr<SbsEvent::Event>> e = std::move(uevents);
+        //e.push_back(std::make_unique<SbsEvent::PresentGui>());
+        //e.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("Hello", 12));
+        
+        return e;
+    }
+ 
+    py::list get_events3(){
+        //uevents.push_back(std::make_unique<SbsEvent::PresentGui>());
+        //uevents.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("Hello", 12));
+        py::list e;
+        e.append(py::cast(new SbsEvent::PresentGui()));
+        e.append(py::cast(new SbsEvent::PresentGuiMessage("Hello", 12)));
+        
+        return e;
+    }
+    std::vector<std::shared_ptr<SbsEvent::Event>> get_events2(){
+        std::vector<std::shared_ptr<SbsEvent::Event>> e;
+        std::shared_ptr<SbsEvent::PresentGui> p =
+            std::make_shared<SbsEvent::PresentGui>();
+        e.push_back(p);
+        return e;
+        
+    }
+    std::vector<SbsEvent::Event*> get_events4(){
+        pevents.push_back(new SbsEvent::PresentGui());
+        pevents.push_back(new SbsEvent::PresentGuiMessage("Hello", 12));
+        std::vector<SbsEvent::Event*> e = std::move(pevents);
+        
+        
+        return e;
+        
+    }
+
     ~Simulation()
     {
         std::cout << "WTF";
         // clear();
     }
+   
 
     SpaceObject *object_exists(uint32_t handle)
     {
@@ -107,6 +176,9 @@ struct Simulation
         }
         return nullptr;
     }
+
+
+
     uint32_t AddSpaceObject(std::string aiTag, std::string dataTag, bool isPlayer, bool isActive)
     {
         auto ID = crc(dataTag.begin(), dataTag.end());
@@ -186,6 +258,8 @@ PYBIND11_EMBEDDED_MODULE(sbs, m)
 {
     // Using the glm module stuff
     py::module_::import("glm");
+    py::module_::import("sbsevent");
+
 
     m.def("get_simulation", &Simulation::instance, py::return_value_policy::reference);
     py::class_<SpaceObject>(m, "SpaceObject")
@@ -203,7 +277,12 @@ PYBIND11_EMBEDDED_MODULE(sbs, m)
              { return self.AddSpaceObject(ai, data, false, true); })
         .def("add_passive", [](Simulation &self, std::string ai, std::string data)
              { return self.AddSpaceObject(ai, data, false, false); })
-        .def("delete_object", &Simulation::DeleteSpaceObject);
+        .def("delete_object", &Simulation::DeleteSpaceObject)
+        .def("get_events", &Simulation::get_events, py::return_value_policy::reference_internal)
+        .def("get_events2", &Simulation::get_events2, py::return_value_policy::reference_internal)
+        .def("get_events3", &Simulation::get_events3)
+        .def("get_events4", &Simulation::get_events4)
+        ;
     py::class_<Logger>(m, "Writer")
         .def("write", &Logger::write)
         .def("flush", &Logger::flush);
@@ -309,6 +388,7 @@ public:
     virtual void Shutdown(void);
 
     virtual void StartMission(void);
+    virtual void DoEvents(void);
     virtual void TickMission(void);
 
     bool isRunning = false;
@@ -326,9 +406,9 @@ int main(int argc, char *argv[])
     MissionScript m;
     ///////////////////////////////
     // Run two different scripts multiple times
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 1; i++)
     {
-        if ((i % 2) == 1)
+        if ((i % 2) == 0)
         {
             m.Setup(basedir, "first", remote, pdb);
             m.Run(basedir, "first");
@@ -383,6 +463,8 @@ void MissionScript::Setup(std::string basedir, std::string missionFolderName, bo
 
     // Hook stdout/stderr
     py::module::import("sbs");
+    py::module::import("sbsevent");
+    py::module::import("example");
     py::module::import("sys").attr("stdout") = &log_stdout; // Must be pointer so it is this one
     py::module::import("sys").attr("stderr") = &log_stderr; // Must be pointer so it is this one
     // load script
@@ -430,6 +512,7 @@ void MissionScript::Run(std::string basedir, std::string missionFolderName)
     {
 
         this->StartMission();
+        this->DoEvents();
         // Run for 10 ticks
         for (int i = 0; i < 10; i++)
         {
@@ -489,6 +572,50 @@ void MissionScript::StartMission(void)
 
     isRunning = true;
 }
+struct Test {
+    int type;
+};
+
+void MissionScript::DoEvents(void)
+{
+    try
+    {
+        this->ReadyPython();
+       
+        ///events->push_back(std::make_unique<SbsEvent::PresentGui>());
+        
+        //Simulation::instance().events.append(Test());
+        // Simulation::instance().events.append(py::cast(new SbsEvent::PresentGuiMessage("butthead", 42)));
+        // Simulation::instance().events.append(1);
+        
+        //Simulation::instance().events.push_back(new SbsEvent::PresentGuiMessage("butthead", 42));
+        //Simulation::instance().events.push_back(new SbsEvent::PresentGui());
+
+        //Simulation::instance().events.push_back(std::make_unique<SbsEvent::PresentGuiMessage>("butthead", 42));
+        //Simulation::instance().events.push_back(std::make_unique<SbsEvent::PresentGui>());
+        //Simulation::instance().events.push_back(std::make_shared<SbsEvent::PresentGuiMessage>("butthead", 42));
+        auto e = std::make_shared<SbsEvent::PresentGui>();
+        Simulation::instance().events.push_back(e);
+
+
+        py::object result = script.attr("HandleEvents");
+        py::object sim = py::cast(&Simulation::instance(), py::return_value_policy::reference);
+        result(sim);
+        Simulation::instance().recycle();
+    }
+    catch (py::error_already_set &e)
+    {
+        // If python has exceptions they land here
+        // You can examine the type for handling different things
+        py::print(e.value());
+    }
+    this->ReadyCPP();
+    
+    std::cout << log_stdout.get();
+    std::cerr << log_stderr.get();
+
+}
+
 
 void MissionScript::TickMission(void)
 {
